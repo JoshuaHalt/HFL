@@ -1,0 +1,8 @@
+To start a new season:
+1. Change HFL.Yahoo.LeaguePage to the new site location in HFL.config
+2. Change the default year in HFL.html and Add.html (the line number is stated at the top of the files)
+3. Go to the XML folder and copy last year's file, rename it to the new year
+4. Update the team data with the new names, any new players, and yahoo IDs
+5. Delete weeks 2-16, set all week 1 scores to 0, not blank! If there are new teams, add their names too.
+6. Upload HFL.config, Web.config, HFL.html, Add.html, and the XML file (in the xml folder)
+7. Easy enough, right?

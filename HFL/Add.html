@@ -1,0 +1,198 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Add Data</title>
+
+    <link href="HFL.css" rel="stylesheet" type="text/css" />
+    <link href="Styles/FlexDropDown.css" rel="stylesheet" />
+    <script src="Scripts/jquery-1.11.1.min.js"></script>
+    <script src="Scripts/jquery-ui.js"></script>
+    <script src="Scripts/jquery.ui.touch-punch.min.js"></script>
+    <script src="Scripts/jquery.min.js"></script>
+    <script src="Scripts/HFL.js"></script>
+    <script src="Scripts/FlexDropDown.js"></script>
+
+    <!--Default year variable is on line 18-->
+
+    <script>
+/*YEAR*/var iDefaultYear = 2014; //Don't set this to a value under 2014!
+        var weekToAdd, teamNames = [], weeklyScores = [];
+
+        function OnLoad()
+        {
+            //use JSON to get the current week, the teams, the week data
+            loadalldata(processAdd, iDefaultYear)
+        }
+
+        function loadalldata(callBackFn, year) {
+            //get JSON from GetJSON.aspx, include command getdata and the year you want
+            var url = "GetJSON.aspx?command=getAddData&year=" + year;
+            $.ajaxSetup({ cache: false });
+            $.getJSON(url,
+                function (data) {
+                    if (data.length == 0) {
+                        document.write("Error: no data!");
+                        return;
+                    }
+
+                    weekToAdd = data[0]; //the next empty week
+                    teamNames = data[1]; //names for each textbox
+                    weeklyScores = data[2]; //scores to put in the textboxes (in case of edit)
+                })
+            .fail(function (jqXHR, textstatus, errorthrown) {
+                console.log("error: " + textstatus);
+                console.log("info: " + errorthrown);
+                console.log("incoming text: " + jqXHR);
+            })
+            .always(function () {
+                callBackFn();
+            })
+        }
+
+        function sendData()
+        {
+            //set up the data to send back to the server to edit the XML file
+            var packet = iDefaultYear + "|"; //year's XML file to edit
+            packet += weekToAdd + "|"; //week to add/edit in the XML file
+            
+            //add in each person's name and their score from the textboxes like "|Joshua 127|Chris 122|"
+            for (i = 0; i < teamNames.length; i++) {
+                packet += document.getElementById("lb" + teamNames[i]).innerHTML.substr(0, document.getElementById("lb" + teamNames[i]).innerHTML.indexOf(':')) + " ";
+                packet += document.getElementById("tb" + teamNames[i]).value + "|";
+            }
+
+            packet = escape(packet); //this is there to make sure transmitting data is safe
+
+            //send the JSON
+            $.ajax({
+                type: "POST",
+                url: "SetJSON.aspx/SetAddData",
+                data: '{"allData": "' + packet + '"}',
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (response) {
+                    var msg = response.d;
+                    if (msg == "Success")
+                        document.getElementById('viewLink').innerHTML = "Scores updated successfully. <a href=\"HFL.html\">View updated site</a>"; //success
+                    else
+                        $('#viewLink').text("Error: " + msg); //error case
+                },
+                failure: function (response) {
+                    alert('failed: ' + response.d);
+                }
+            });
+        }
+
+        function processAdd()
+        {
+            $('#dTitle').text("Add Week " + weekToAdd + " Scores"); //title
+            $('#dNotWeek').text("It's not week " + weekToAdd + "..."); //"it's not week..."
+
+            //error case for week 17, though they can still change the week or begin a new season
+            if (weekToAdd == 17) {
+                $('#dTitle').text("Is it time for a new season?");
+                $('#dNotWeek').empty();
+                $('#dNotWeek').append("<a href=\"AddSeason.html\">Begin the " + (iDefaultYear + 1).toString() + " season</a>");
+            }
+
+            //remember, sLine's content is emptied, then reset when the dropdown week value is changed
+            for (i = 0; i < teamNames.length; i++) {
+                sLine = "<div id=\"dPlayer" + teamNames[i] + "\" style=\"line-height: 1.5\"><label class=\"nameLabel\" id=\"lb" + teamNames[i] + "\">" +
+                    teamNames[i] + ":&nbsp;</label>" + "<input type=\"text\" class=\"smallerText\" id=\"tb" + teamNames[i] +
+                    "\" value=\"\" /> <div id=\"dv" + teamNames[i] + "\" class=\"error\"></div></div>";
+                $("#textBoxGroup").append(sLine);
+            }
+        }
+
+        function btnSubmit_click()
+        {
+            //can't add week 17 scores
+            if (weekToAdd == 17)
+            {
+                alert("You can't add week 17 scores since there is no week 17. Please choose another week.");
+                return;
+            }
+
+            //data validation
+            for (i = 0; i < teamNames.length; i++) {
+                document.getElementById('dv' + teamNames[i]).innerText = ""; //reset error div to nothing
+
+                //empty textbox or space in textbox, no idea how that would happen but checking anyway
+                if ($('#tb' + teamNames[i]).val() == "" || $('#tb' + teamNames[i]).val() == " ") {
+                    document.getElementById('dv' + teamNames[i]).innerText = "Error: this textbox is empty. Please enter the score.";
+                    return;
+                }
+
+                //textbox with a non-number in it
+                if ($('#tb' + teamNames[i]).val() % 1 != 0) {
+                    $('#dv' + teamNames[i]).text("Error: this textbox does not contain a number.");
+                    return;
+                }
+            }
+
+            //if you get here, data is probably good, so send it to edit the XML file
+            sendData();
+        }
+
+        function selWeek_selectedIndexChanged(selVal)
+        {
+            weekToAdd = parseInt(selVal.substring(10)); //change the week to add
+            $('#dTitle').text("Add Week " + weekToAdd + " Scores"); //reset title
+            $('#dNotWeek').text("It's not week " + weekToAdd + "..."); //reset "It's not week ..."
+
+            //if it's less than the selected value, there is already week data there, so reset the names and textboxes (fill them with data)
+            if (weekToAdd <= weeklyScores.length) {
+                $('#textBoxGroup').empty();
+                for (i = 0; i < weeklyScores[weekToAdd - 1][0].length; i++) {
+                    sLine = "<div id=\"dPlayer" + weeklyScores[weekToAdd - 1][0][i] + "\"><label class=\"nameLabel\" id=\"lb" +
+                        weeklyScores[weekToAdd - 1][0][i] + "\">" + weeklyScores[weekToAdd - 1][0][i] + ":&nbsp;</label>" +
+                        "<input type=\"text\" class=\"smallerText\" id=\"tb" + weeklyScores[weekToAdd - 1][0][i] + "\" value=\"" +
+                        weeklyScores[weekToAdd - 1][1][i] + "\" > <div id=\"dv" + teamNames[i] + "\" class=\"error\"></div></div>";
+                    $("#textBoxGroup").append(sLine);
+                }
+            }
+
+            //otherwise there isn't data for it, so reset to the original load state
+            else
+            {
+                $('#textBoxGroup').empty();
+                for (i = 0; i < teamNames.length; i++) {
+                    sLine = "<div id=\"dPlayer" + teamNames[i] + "\" style=\"line-height: 1.5\"><label class=\"nameLabel\" id=\"lb" + teamNames[i] + "\">" +
+                        teamNames[i] + ":&nbsp;</label>" + "<input type=\"text\" class=\"smallerText\" id=\"tb" + teamNames[i] + "\" value=\"\" ></div>";
+                    $("#textBoxGroup").append(sLine);
+                }
+            }
+        }
+    </script>
+
+</head>
+<body style="font-family: 'Trebuchet MS'">
+    <div class ="tableTitle"> <!--Title line with week and drop down if they want to change the week-->
+        <span id="dTitle">Add Week 1 Scores</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <span id="dNotWeek" data-flexmenu="flexmenu2" style="font-size: 18px; color: #0000EE; text-decoration: underline;">It's not week 1...</span>
+    </div>
+
+    <!--Drop down menu, has to be separate for whatever reason-->
+    <ul id="flexmenu2" class="flexdropdownmenu"></ul>
+    
+    <br />
+    
+    <!--Will be dynamically loaded with a label, textbox, and div (in case of error)-->
+    <div id="textBoxGroup"></div>
+
+    <br /> <br />
+
+    <div> <!--Save button, span for buffer space, div for Success message-->
+        <input type="button" id="btnSubmit" class="saveButton" value="Save Scores" onclick="btnSubmit_click()" />
+        <span style="width: 50px; display: inline-block;"></span>
+        <div style="display:inline-block;" id="viewLink" class="tableTitle"></div>
+    </div>
+
+    <!--Short script to fill the dropdown with "it's week"-->
+    <script>
+        for (i = 1; i <= 16; i++)
+            $('#flexmenu2').append("<li><a id=\"selA" + i + "\" onclick=\"selWeek_selectedIndexChanged($('#selA" +
+                i + "').text())\" class=\"mainLink\" data-flexmenu=\"flexmenu1\">It's week " + i + "</a></li>");
+    </script>
+</body>
+</html>

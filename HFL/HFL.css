@@ -1,0 +1,222 @@
+﻿
+        .pageTitle
+        {
+            font-size: 24px;
+            font-weight: bold;
+            font-family: Arial;
+        }
+        
+        .mainLink
+        {
+            font-size: 17px;
+            font-family: 'Trebuchet MS';
+        }
+
+        .outerTable
+        {
+            border-radius: 25px; 
+            border: 1px solid black; 
+            padding: 15px 15px 15px 15px; 
+            background-color: #e1f2fe;
+            width: 1013px;
+        }
+        
+        .innerTable
+        {
+            font-family: Trebuchet MS;
+            border-collapse: collapse;
+            width: 1013px;
+        }
+
+        .stdColumn
+        {
+            display: inline-block;
+            min-width: 42px;
+            text-align: center;
+        }
+
+        .colTotAvg
+        {
+            display: inline-block;
+            min-width: 50px;
+            text-align: center;
+        }
+        
+        .titleLine
+        {
+            background-color: #91DEED;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        .totalLine
+        {
+            border-top: 1px solid black;
+            background-color: #89C8E0;
+        }
+        
+        .regRow
+        {
+            background-color: White;
+        }
+        
+        .altRow
+        {
+            background-color: #D7EEF7;
+        }
+
+        .ui-slider-handle:focus
+        {
+            outline: none;
+        }
+
+        .colOwnerName
+        {
+            font-family: Arial;
+            text-align: left;
+            font-size: 18px;
+            display: inline-block;
+            min-width: 70px;
+        }
+        
+        .colTeamName
+        {
+            font-family: Arial;
+            text-align: left;
+            font-size: 18px;
+            display: inline-block;
+            min-width: 241px;
+        }
+        
+        .colWinner
+        {
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        .tableTitle
+        {
+            background-color: White;
+            font-family: Trebuchet MS;
+            font-size: 22px;
+            font-weight: bold;
+        }
+        
+        .ptsBack
+        {
+            display: inline-block;
+            min-width: 53px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .scoreSuperbowlCol
+        {
+            display: inline-block;
+            min-width: 123px;
+            text-align: center;
+        }
+        
+        .formationTable
+        {
+            font-family: Trebuchet MS;
+            text-align: left;
+            border: 1px solid blue;
+            border-collapse: collapse;
+        }
+        
+        .label
+        {
+            font-family: Trebuchet MS;
+            font-size: 16px;
+        }
+        
+        #button
+        {
+            font-family: Trebuchet MS;
+        }
+        
+        /*in add pages*/
+        .smallerText
+        {
+            font-family: Trebuchet MS;
+            width: 50px;
+        }
+
+        .saveButton
+        {
+	        -moz-box-shadow: 0px 10px 11px -7px #276873;
+	        -webkit-box-shadow: 0px 10px 11px -7px #276873;
+	        box-shadow: 0px 10px 11px -7px #276873;
+	        background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #d7eef7), color-stop(1, #89c7e0));
+	        background:-moz-linear-gradient(top, #d7eef7 5%, #89c7e0 100%);
+	        background:-webkit-linear-gradient(top, #d7eef7 5%, #89c7e0 100%);
+	        background:-o-linear-gradient(top, #d7eef7 5%, #89c7e0 100%);
+	        background:-ms-linear-gradient(top, #d7eef7 5%, #89c7e0 100%);
+	        background:linear-gradient(to bottom, #d7eef7 5%, #89c7e0 100%);
+	        filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#d7eef7', endColorstr='#89c7e0',GradientType=0);
+	        background-color:#d7eef7;
+            -moz-border-radius:25px;
+	        -webkit-border-radius:25px;
+	        border-radius:25px;
+	        border:1px solid #29668f;
+	        display:inline-block;
+	        cursor:pointer;
+	        color:#000000;
+	        font-family:Trebuchet MS;
+	        font-size:18px;
+	        font-weight:bold;
+	        padding:13px 32px;
+	        text-decoration:none;
+        }
+
+        .saveButton:hover {
+            background: -webkit-gradient(linear, left top, left bottom, color-stop(0.05, #89c7e0), color-stop(1, #d7eef7));
+            background: -moz-linear-gradient(top, #89c7e0 5%, #d7eef7 100%);
+            background: -webkit-linear-gradient(top, #89c7e0 5%, #d7eef7 100%);
+            background: -o-linear-gradient(top, #89c7e0 5%, #d7eef7 100%);
+            background: -ms-linear-gradient(top, #89c7e0 5%, #d7eef7 100%);
+            background: linear-gradient(to bottom, #89c7e0 5%, #d7eef7 100%);
+            filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#89c7e0', endColorstr='#d7eef7',GradientType=0);
+            background-color: #89c7e0;
+        }
+
+        .saveButton:active {
+	        position:relative;
+	        top:1px;
+            outline: 0;
+        }
+
+        .saveButton:focus {
+            outline: 0;
+        }
+
+        .nameLabel
+        {
+            display: inline-block;
+            font-family: 'Trebuchet MS';
+            font-size: 18px;
+            min-width: 75px;
+        }
+        
+        .error
+        {
+            display: inline-block;
+            font-family: Trebuchet MS;
+            font-size: 18px;
+            color: Red;
+        }
+
+        .smallError
+        {
+            display: inline-block;
+            font-family: Trebuchet MS;
+            font-size: 13px;
+            color: Red;
+        }
+
+        .addOwnerYahoo
+        {
+            display: inline-block;
+            width: 50px;
+        }

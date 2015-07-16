@@ -1,0 +1,106 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>HFL Hall of Fame</title>
+    <link href="HFL.css" rel="stylesheet" type="text/css" />
+    <script src="Scripts/jquery-1.11.1.min.js"></script>
+    <script src="Scripts/HFL.js"></script>
+
+    <script>
+        var years = [], owners = [], teams = [], rosters = [], addresses = [], drafts = [];
+
+        function OnLoad()
+        {
+            loadalldata(ProcessHall);
+        }
+
+        function loadalldata(callBackFn) {
+            //get JSON from GetJSON.aspx, include command gethall
+            var url = "GetJSON.aspx?command=gethall";
+            $.ajaxSetup({ cache: false });
+            $.getJSON(url,
+                function (data) {
+                    if (data.length == 0) {
+                        document.write("Error: no data!");
+                        return;
+                    }
+
+                    //all data is in parallel arrays
+                    years = data[0]; //list of all the years
+                    owners = data[1]; //list of all the owners
+                    teams = data[2]; //list of all the team names
+                    rosters = data[3]; //list of available rosters
+                    addresses = data[4]; //list of links to that year
+                    drafts = data[5]; //list of links to the draft of that year
+                })
+            .fail(function (jqXHR, textstatus, errorthrown) {
+                console.log("error: " + textstatus);
+                console.log("info: " + errorthrown);
+                console.log("incoming text: " + jqXHR);
+            })
+            .always(function () {
+                callBackFn(); //then call the callback functino, which makes the display
+            })
+        }
+
+        function ProcessHall()
+        {
+            //dynamically create table
+            sLine = "<div class=\"titleLine\" style=\"font-size: 22px;\"><span style=\"min-width: 70px; display: inline-block;\">Year</span>" +
+                        "<span style=\"min-width: 80px; display: inline-block; text-align: left;\">Owner</span>" +
+                        "<span style=\"min-width: 338px; display: inline-block; text-align: left;\">Team Name</span>" +
+                        "<span style=\"min-width: 100px; display: inline-block;\">Rosters</span>" +
+                        "<span style=\"min-width: 155px; display: inline-block;\">Year Summary</span>" +
+                        "<span style=\"min-width: 90px; display: inline-block;\">Drafts</span></div>";
+            $('#tabHall').append(sLine);
+
+            //for each year, create a line with all the data in it
+            for (i = 0; i < years.length; i++) {
+                sLine = "<div class=\"";
+
+                if (i % 2 == 1)
+                    sLine += "altRow";
+                else
+                    sLine += "regRow";
+
+                sLine += "\"><span style=\"min-width: 70px; display: inline-block;\">" + years[i] + "</span>";
+                sLine += "<span style=\"min-width: 80px; display: inline-block; text-align: left;\">" + owners[i] + "</span>";
+                sLine += "<span style=\"min-width: 338px; display: inline-block; text-align: left;\">" + teams[i] + "</span>";
+                sLine += "<span style=\"min-width: 100px; display: inline-block;\">" + rosters[i] + "</span>";
+                sLine += "<span style=\"min-width: 155px; display: inline-block;\">" + addresses[i] + "</span>";
+                sLine += "<span style=\"min-width: 90px; display: inline-block;\">" + drafts[i] + "</span></div>";
+
+
+                $('#tabHall').append(sLine);
+            }
+        }
+    </script>
+</head>
+<body style="font-family: Trebuchet MS">
+    <form>
+        <div class="pageTitle" style="font-size: 28px; text-align: center">~&nbsp;&nbsp;HFL Hall of Fame&nbsp;&nbsp;~</div>
+
+        <br />
+
+        <a class="mainLink" href="HFL.html">Return to HFL homepage</a>
+
+        <br />
+
+        <center>
+            <div class="outerTable" style="width: 850px;">
+                <div id="tabHall" class="innerTable" style="font-size: 20px; width: 850px;"></div>
+            </div>
+            <!--<table id="tabHall" class="tabHall">
+                <tr class="titleLine" style="border-top: 1px solid black">
+                    <td>Year</td>
+                    <td>Owner</td>
+                    <td>Team Name</td>
+                    <td>Rosters</td>
+                    <td style="padding-left: 10px; padding-right: 10px">Year Summary</td>
+                    <td>Drafts</td>
+                </tr>
+            </table>-->
+        </center>
+    </form>
+</body>
+</html>

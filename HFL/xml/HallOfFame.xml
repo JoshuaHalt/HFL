@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<hfl>
+  <!--<year id="2014" winningTeam="Breaking Dad" owner="Zall" roster="" address="hfl.aspx?year=2014" draft="" />-->
+  <year id="2014" winningTeam="Dex's Dark Passenger" owner="Guy" roster="" address="hfl.html?year=2014" draft="Draft2014.htm" />
+  <year id="2013" winningTeam="Summer of Insanity" owner="Gene" roster="" address="hfl2013.aspx" draft="Draft2013.htm" />
+  <year id="2012" winningTeam="Peripheral Visionaries" owner="Chris" roster="" address="hfl2012.aspx" draft="Draft2012.htm" />
+  <year id="2011" winningTeam="Welcome to the Gun Show" owner="Gene" roster="" address="hfl2011.aspx" draft="Draft2011.htm" />
+  <year id="2010" winningTeam="Attention Deficit Robot" owner="Chris" roster="" address="hfl2010.aspx" draft="Draft2010.htm" />
+  <year id="2009" winningTeam="Fermented Navigation" owner="Gene" roster="" address="hfl2009.aspx" draft="Draft2009.htm" />
+  <year id="2008" winningTeam="Most Interesting Team in the World" owner="Chris" roster="" address="hfl2008.aspx" draft="Draft2008.htm" />
+  <year id="2007" winningTeam="Heater Sitters" owner="Michele" roster="" address="hfl2007.aspx" draft="Draft2007.htm" />
+  <year id="2006" winningTeam="Mo's Grass Vomit" owner="Gene" roster="" address="hfl2006.aspx" draft="Draft2006.htm" />
+  <year id="2005" winningTeam="Pecos Bill's Pork Rapture" owner="Chris" roster="Rosters2005.htm" address="hfl2005.aspx" draft="Draft2005.htm" />
+  <year id="2004" winningTeam="Orion Nebula Outcasts" owner="Chris" roster="Rosters2004.htm" address="hfl2004.aspx" draft="Draft2004.htm" />
+  <year id="2003" winningTeam="The Merovingian" owner="Chris" roster="Rosters2003.htm" address="hfl2003.aspx" draft="Draft2003.htm" />
+  <year id="2002" winningTeam="Prima Nocte" owner="Chris" roster="Rosters2002.htm" address="standings2002.htm" draft="Draft2002.htm" />
+  <year id="2001" winningTeam="Gastro Intestinal" owner="Gene" roster="Rosters2001.htm" address="standings2001.htm" draft="Draft2001.htm" />
+  <year id="2000" winningTeam="Desert Storm" owner="Pop" roster="Rosters2000.htm" address="standings2000.htm" draft="Draft2000.htm" />
+  <year id="1999" winningTeam="Angelfire" owner="Chris" roster="Roster99.htm" address="standings99.htm" draft="draft99.htm" />
+  <year id="1998" winningTeam="Sons of Thunder" owner="Chris" roster="roster98.htm" address="hfl98.txt" draft="draft98.htm" />
+  <year id="1997" winningTeam="Unstoppable Freak Posse" owner="Chris" roster="hflrost97.htm" address="summary97.htm" draft="draft97.htm" />
+  <year id="1996" winningTeam="Baiulian-Immobilaire" owner="Chris" roster="" address="" draft="" />
+  <year id="1995" winningTeam="Oatmeal Probe" owner="Gene" address="" roster="" draft="" />
+  <year id="1994" winningTeam="Dole Mites" owner="Michael" roster="" address="" draft="" />
+  <year id="1993" winningTeam="Bilingual Mimes" owner="Michael" roster="" address="" draft="" />
+</hfl>

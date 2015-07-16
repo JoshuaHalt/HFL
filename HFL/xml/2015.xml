@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<hfl>
+  <!--Warning: there must be at least one team-->
+  <teams>
+    <team id="1" name="Bile Duct Inflammation" owner="Ed" yahooID="2" />
+    <team id="2" name="Dex's Dark Passenger" owner="Guy" yahooID="5" />
+    <team id="3" name="Sand Crabs" owner="Pop" yahooID="3" />
+    <team id="4" name="Lucky Bastard Monkey" owner="Gene" yahooID="4" />
+    <team id="5" name="Breaking Dad" owner="Joshua" yahooID="6" />
+    <team id="6" name="The Angriest Angel" owner="Chris" yahooID="1" />
+    <team id="7" name="Mama's Team" owner="Mama" yahooID="7" />
+  </teams>
+  <!--Warning: for a new season, add week 1 with all scores set to 0-->
+  <weeks>
+    <week id="1" Ed="101" Guy="99" Pop="37" Gene="39" Joshua="74" Chris="110" Mama="98" />
+    <week id="2" Ed="88" Guy="99" Pop="77" Gene="66" Joshua="90" Chris="38" Mama="99" />
+    <week id="3" Ed="98" Guy="77" Pop="28" Gene="94" Joshua="83" Chris="93" Mama="99" />
+    <week id="4" Ed="99" Guy="88" Pop="77" Gene="66" Joshua="55" Chris="44" Mama="33" />
+    <week id="5" Ed="90" Guy="98" Pop="87" Gene="67" Joshua="98" Chris="99" Mama="190" />
+    <week id="6" Ed="39" Guy="93" Pop="94" Gene="99" Joshua="99" Chris="99" Mama="174" />
+    <week id="7" Ed="99" Guy="99" Pop="90" Gene="98" Joshua="87" Chris="79" Mama="80" />
+    <week id="8" Ed="90" Guy="93" Pop="87" Gene="90" Joshua="87" Chris="89" Mama="77" />
+    <week id="10" Ed="09" Guy="09" Pop="9" Gene="9" Joshua="9" Chris="9" Mama="9" />
+    <week id="11" Ed="93" Guy="098" Pop="89" Gene="90" Joshua="98" Chris="87" Mama="099" />
+    <week id="9" Ed="98" Guy="90" Pop="87" Gene="98" Joshua="98" Chris="87" Mama="89" />
+    <week id="12" Ed="10" Guy="10" Pop="10" Gene="20" Joshua="20" Chris="20" Mama="30" />
+    <week id="13" Ed="90" Guy="90" Pop="87" Gene="87" Joshua="100" Chris="100" Mama="100" />
+    <week id="14" Ed="79" Guy="90" Pop="98" Gene="90" Joshua="93" Chris="99" Mama="120" />
+    <week id="15" Ed="99" Guy="98" Pop="97" Gene="90" Joshua="120" Chris="121" Mama="122" />
+    <week id="16" Ed="98" Guy="90" Pop="87" Gene="59" Joshua="157" Chris="130" Mama="120" />
+  </weeks>
+</hfl>

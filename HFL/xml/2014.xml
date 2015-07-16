@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<hfl>
+  <!--Warning: there must be at least one team-->
+  <teams>
+    <team id="1" name="Bile Duct Inflammation" owner="Ed" yahooID="2" />
+    <team id="2" name="Dex's Dark Passenger" owner="Guy" yahooID="5" />
+    <team id="3" name="Sand Crabs" owner="Pop" yahooID="3" />
+    <team id="4" name="Lucky Bastard Monkey" owner="Gene" yahooID="4" />
+    <team id="5" name="Breaking Dad" owner="Joshua" yahooID="6" />
+    <team id="6" name="The Angriest Angel" owner="Chris" yahooID="1" />
+  </teams>
+  <!--Warning: for a new season, add week 1 with all scores set to 0-->
+  <!--Also, don't put comments inside the weeks, or teams. It has strange results.-->
+  <weeks>
+    <week id="1" Ed="92" Guy="138" Pop="114" Gene="115" Joshua="76" Chris="78" />
+    <week id="2" Ed="49" Guy="95" Pop="100" Gene="115" Joshua="63" Chris="78" />
+    <week id="3" Ed="83" Guy="97" Pop="57" Gene="94" Joshua="95" Chris="85" />
+    <week id="4" Ed="88" Guy="143" Pop="107" Gene="105" Joshua="92" Chris="93" />
+    <week id="5" Ed="71" Guy="98" Pop="92" Gene="104" Joshua="95" Chris="103" />
+    <week id="6" Ed="88" Guy="133" Pop="57" Gene="140" Joshua="103" Chris="79" />
+    <week id="7" Ed="74" Guy="107" Pop="80" Gene="117" Joshua="83" Chris="73" />
+    <week id="8" Ed="113" Guy="147" Pop="149" Gene="129" Joshua="122" Chris="92" />
+    <week id="9" Ed="81" Guy="109" Pop="165" Gene="126" Joshua="98" Chris="92" />
+    <week id="10" Ed="43" Guy="119" Pop="103" Gene="117" Joshua="127" Chris="99" />
+    <week id="11" Ed="36" Guy="80" Pop="83" Gene="94" Joshua="130" Chris="94" />
+    <week id="12" Ed="71" Guy="93" Pop="96" Gene="93" Joshua="113" Chris="117" />
+    <week id="13" Ed="95" Guy="135" Pop="108" Gene="132" Joshua="100" Chris="83" />
+    <week id="14" Ed="30" Guy="141" Pop="105" Gene="124" Joshua="135" Chris="131" />
+    <week id="15" Chris="78" Guy="98" Gene="69" Pop="72" Ed="68" Joshua="103" />
+    <week id="16" Ed="37" Guy="104" Pop="71" Gene="93" Joshua="98" Chris="125" />
+  </weeks>
+</hfl>

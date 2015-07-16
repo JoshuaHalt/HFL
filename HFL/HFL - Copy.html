@@ -1,0 +1,517 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>HFL</title>
+
+    <!--
+        Used dynamic drive sites:
+        GooeyMenu: http://www.dynamicdrive.com/dynamicindex1/gooeymenu.htm
+        FlexDropDown: http://www.dynamicdrive.com/dynamicindex1/flexdropdown.htm
+    -->
+
+    <link href="HFL.css" rel="stylesheet" type="text/css" />
+    <link rel="shortcut icon" href="HFL.ico" />
+    <script src="Scripts/jquery-1.11.1.min.js"></script>
+    <script src="Scripts/jquery-ui.js"></script>
+    <script src="Scripts/jquery.ui.touch-punch.min.js"></script>
+    <script src="Scripts/jquery.min.js"></script>
+    <script src="Scripts/GooeyMenu.js"></script>
+    <script src="Scripts/HFL.js"></script>
+    <script src="Scripts/FlexDropDown.js"></script>
+    <link href="Styles/jquery-ui.structure.css" rel="stylesheet" /> <!--slider-->
+    <link href="Styles/jquery-ui.theme.min.css" rel="stylesheet" /> <!--slider-->
+    <link href="Styles/GooeyMenu.css" rel="stylesheet" />
+    <link href="Styles/FlexDropDown.css" rel="stylesheet" />
+
+    <!--Default year variable is on line 29-->
+
+    <script>
+        var alldata = [];
+/*YEAR*/var iDefaultYear = 2014; //Don't set this to a value under 2014!
+        var iYear = iDefaultYear, oldSiteLoc = "", points = [], totalLine = [], showSuperbowl = false, bSupDone = false, draftOrder = "";
+        var bFirstLoad = true;
+
+        
+
+        function OnLoad()
+        {
+            //if there isn't a year passed in by QueryString, use the default
+            if (window.location.href.indexOf('year=') == -1)
+                iYear = iDefaultYear;
+            //otherwise use the passed in year as the default
+            else
+                iYear = parseInt(getParameterByName("year"));
+
+            loadalldata(datareceived, iYear);
+        }
+
+        function selYear_SelectedIndexChanged(selVal)
+        {
+            if (selVal == "View Previous Year")
+                return;
+
+            //JSON call with whatever the default year is
+            else if (selVal == "Current Year")
+                loadalldata(datareceived, iDefaultYear);
+
+                //if it's the new site, load the data with the selected year
+            else if (selVal >= 2014)
+                loadalldata(datareceived, selVal);
+
+                //load the past year's address from the hall of fame xml file on the server, then open that year in a new tab
+            else {
+                var request = new XMLHttpRequest();
+                request.open("GET", "xml/HallOfFame.xml", false);
+                request.send();
+                var xml = request.responseXML;
+                var years = xml.getElementsByTagName("year");
+                for (i = 0; i < years.length; i++) {
+                    var year = years[i];
+                    if (year.getAttribute('id') == selVal) {
+                        window.open(oldSiteLoc + year.getAttribute('address'), '_blank');
+                    }
+                }
+            }
+        }
+
+        function datareceived(iStartWeek, iEndWeek) {
+            //put the values into the select for all the years from 1997 to latest year
+            if (bFirstLoad) {
+                bFirstLoad = false;
+                for (i = 1997; i <= iDefaultYear; i++) {
+                    $("#selYear").append("<option>" + i + "</option>");
+                }
+            }
+
+            //title, title, draft year, and draft link
+            document.title = "HFL " + iYear;
+            $(pageTitle).text('HFL ' + iYear);
+            $(draftLink).text(iYear + ' Draft');
+            $(draftLink).attr("href", "Draft" + iYear + ".htm");
+
+            //set the end week depending on how many weeks there have been
+            if (points[0].weeklyScores.length < iEndWeek)
+                iEndWeek = points[0].weeklyScores.length;
+
+
+
+
+
+            //Scores
+            //title line
+            $('#tabScores').empty();
+
+            sLine = "<div class=\"titleLine\"><span class=\"colOwnerName\">Owner</span><span class=\"colTeamName\">Team Name</span>" +
+                    "<span class=\"colTotAvg\">Total</span><span class=\"colTotAvg\">Avg.</span>";
+
+            for (i = 1; i <= 14; i++)
+                sLine += "<span class=\"stdColumn\">" + i + "</span>";
+            sLine += "</div>";
+            $('#tabScores').append(sLine);
+
+
+            //data
+            personTotals = [], personAvgs = [], rows = [], grandTotal = 0, grandAvg = 0;
+
+            //calculate each person's total
+            for (i = 0; i < points.length; i++) {
+                personTotals[i] = 0;
+                for (j = iStartWeek - 1; j <= iEndWeek - 1; j++)
+                    personTotals[i] += points[i].weeklyScores[j];
+            }
+
+            //calculate each person's average and the grand total
+            for (i = 0; i < personTotals.length; i++) {
+                personAvgs[i] = Math.round(personTotals[i] / (iEndWeek - iStartWeek + 1));
+                grandTotal += personTotals[i];
+            }
+
+            //average of everyone
+            grandAvg = Math.round(grandTotal / (iEndWeek - iStartWeek + 1));
+
+            //for each person
+            for (i = 0; i < points.length; i++) {
+                currentTeam = points[i];
+
+                sLine = "<div><span class=\"colOwnerName\">" + currentTeam.sOwner + "</span>";
+                sLine += "<span class=\"colTeamName\">" + currentTeam.sTeamName + "</span>";
+                sLine += "<span class=\"colTotAvg\">" + personTotals[i] + "</span>";
+                sLine += "<span class=\"colTotAvg\">" + personAvgs[i] + "</span>";
+
+                for (j = 0; j < iStartWeek - 1; j++) //1 to the starting week, leave blank
+                    sLine += "<span class=\"stdColumn\">&nbsp;</span>";
+
+                for (j = iStartWeek; j <= iEndWeek; j++) //starting week to ending week, insert the data
+                    sLine += "<span class=\"stdColumn\">" + currentTeam.weeklyScores[j - 1] + "</span>";
+
+                for (j = iEndWeek; j < 14; j++) //ending week to week 14, leave blank
+                    sLine += "<span class=\"stdColumn\">&nbsp;</span>";
+
+                sLine += "</div>";
+                rows.push(sLine);
+            }
+
+            //sort the rows by each person's total
+            insertionSort(personTotals, rows);
+
+            //assign a class to each row
+            $.each(rows, function (ind, loc) {
+                if (ind % 2 == 1)
+                    rows[ind] = [loc.slice(0, 4), " class=\"altRow\"", loc.slice(4)].join('');
+                else
+                    rows[ind] = [loc.slice(0, 4), " class=\"regRow\"", loc.slice(4)].join('');
+                $('#tabScores').append(rows[ind]);
+            });
+
+
+            //total line
+            sLine = "<div class=\"totalLine\"><span class=\"colOwnerName\" style=\"font-weight: bold;\">TOTAL</span><span class=\"colTeamName\">&nbsp;</span>" +
+                    "<span class=\"colTotAvg\">" + grandTotal + "</span><span class=\"colTotAvg\">" + grandAvg + "</span>";
+
+            for (j = 0; j < iStartWeek - 1; j++) //1 to the starting week, leave blank
+                sLine += "<span class=\"stdColumn\">&nbsp;</span>";
+
+            for (j = iStartWeek; j <= iEndWeek; j++) //starting week to ending week, insert the data
+                sLine += "<span class=\"stdColumn\">" + totalLine.weeklyScores[j - 1] + "</span>";
+
+            for (j = iEndWeek; j < 14; j++) //ending week to week 14, leave blank
+                sLine += "<span class=\"stdColumn\">&nbsp;</span>";
+
+            sLine += "</div>";
+            $('#tabScores').append(sLine);
+
+
+
+
+
+            //Standings
+            //title
+            $('#tabStandings').empty();
+
+            sLine = "<div class=\"titleLine\"><span class=\"colOwnerName\">Owner</span><span class=\"colTeamName\">Team Name</span>" +
+                    "<span class=\"ptsBack\">Points</span><span class=\"ptsBack\">Back</span>";
+
+            for (i = 1; i <= 14; i++)
+                sLine += "<span class=\"stdColumn\">" + i + "</span>";
+            sLine += "</div>";
+            $('#tabStandings').append(sLine);
+
+            //data
+            personSDTotals = [], personSDBack = [], rows = [];
+
+            //calculate each person's total standings points
+            for (i = 0; i < points.length; i++) {
+                personSDTotals[i] = 0;
+                for (j = iStartWeek - 1; j <= iEndWeek - 1; j++)
+                    personSDTotals[i] += points[i].weeklyStandings[j];
+            }
+
+            //get the highest score for calculating points back
+            highestScore = Math.max.apply(Math, personSDTotals);
+            
+            //calculate points back by using highest standings - person's standings
+            for (i = 0; i < points.length; i++)
+                personSDBack[i] = highestScore - personSDTotals[i];
+
+            //for each person
+            for (i = 0; i < points.length; i++) {
+                currentTeam = points[i];
+
+                sLine = "<div><span class=\"colOwnerName\">" + currentTeam.sOwner + "</span>";
+                sLine += "<span class=\"colTeamName\">" + currentTeam.sTeamName + "</span>";
+                sLine += "<span class=\"ptsBack\">" + personSDTotals[i] + "</span>";
+                sLine += "<span class=\"ptsBack\">" + personSDBack[i] + "</span>";
+
+                for (j = 0; j < iStartWeek - 1; j++) //1 to starting week, leave blank
+                    sLine += "<span class=\"stdColumn\">&nbsp;</span>";
+
+                for (j = iStartWeek; j <= iEndWeek; j++) //starting week to ending week, insert the standings
+                    sLine += "<span class=\"stdColumn\">" + currentTeam.weeklyStandings[j - 1] + "</span>";
+
+                for (j = iEndWeek; j < 14; j++) //ending week to week 14, leave blank
+                    sLine += "<span class=\"stdColumn\">&nbsp;</span>";
+
+                sLine += "</div>";
+                rows.push(sLine);
+            }
+
+            //sort the rows by person standings totals
+            insertionSort(personSDTotals, rows);
+
+            //give each row a class
+            $.each(rows, function (ind, loc) {
+                if (ind % 2 == 1)
+                    rows[ind] = [loc.slice(0, 4), " class=\"altRow\"", loc.slice(4)].join('');
+                else
+                    rows[ind] = [loc.slice(0, 4), " class=\"regRow\"", loc.slice(4)].join('');
+                $('#tabStandings').append(rows[ind]);
+            });
+
+
+
+
+
+            //superbowl
+            if (showSuperbowl) {
+                dSuperbowl.innerText = "Superbowl";
+                tabSupOuter.className = "outerTable";
+
+                //if they view a year without superbowl, it has to be hidden, so show it again
+                $('#dSuperbowl').show();
+                $('#tabSupOuter').show();
+                $('#dWinner').show();
+                $('#dDraftOrder').show();
+
+                //title
+                personSupScore = [], rows = [];
+
+                //find the subscript of the person who has the highest score to get the winner in next step
+                highestSupScore = 0;
+                for (i = 0; i < points.length; i++) {
+                    personSupScore[i] = points[i].i15Points + points[i].i16Points - (personSDBack[i] * 2)
+                    if (personSupScore[i] >= personSupScore[highestSupScore])
+                        highestSupScore = i;
+                }
+
+                //figure out who won the superbowl, whether it's done or not; it's not shown if it's not done
+                supWinner = points[highestSupScore].sTeamName.substr(points[highestSupScore].sTeamName.indexOf('>') + 1,
+                    points[highestSupScore].sTeamName.indexOf("</a>") - points[highestSupScore].sTeamName.indexOf('>') - 1) +
+                    " (" + points[highestSupScore].sOwner + ")";
+
+                $('#tabSuperbowl').empty();
+
+                sLine = "<div class=\"titleLine\"><span class=\"colOwnerName\">Owner</span><span class=\"colTeamName\">Team Name</span>" +
+                        "<span class=\"scoreSuperbowlCol\">Week 15</span><span class=\"scoreSuperbowlCol\">Deduction</span>" +
+                        "<span class=\"scoreSuperbowlCol\">Week 16</span><span class=\"scoreSuperbowlCol\">Deduction</span>" +
+                        "<span class=\"scoreSuperbowlCol\" style=\"width: 205px;\">Superbowl Net Total</span>";
+
+                sLine += "</div>";
+                $('#tabSuperbowl').append(sLine);
+
+                //data
+                for (i = 0; i < points.length; i++) {
+                    sLine = "<div><span class=\"colOwnerName\">" + points[i].sOwner + "</span>";
+                    sLine += "<span class=\"colTeamName\">" + points[i].sTeamName + "</span>";
+
+                    sLine += "<span class=\"scoreSuperbowlCol\">" + points[i].i15Points + "</span>";
+                    sLine += "<span class=\"scoreSuperbowlCol\">" + personSDBack[i] + "</span>";
+                    sLine += "<span class=\"scoreSuperbowlCol\">" + points[i].i16Points + "</span>";
+                    sLine += "<span class=\"scoreSuperbowlCol\">" + personSDBack[i] + "</span>";
+
+                    sLine += "<span class=\"scoreSuperbowlCol\" style=\"width: 205px; font-weight: bold;\">" + personSupScore[i] + "</span>";
+
+                    sLine += "</div>";
+                    rows.push(sLine);
+                }
+
+                //sort rows by each person's superbowl points
+                insertionSort(personSupScore, rows);
+
+                //assign a class to each row
+                $.each(rows, function (ind, loc) {
+                    if (ind % 2 == 1)
+                        rows[ind] = [loc.slice(0, 4), " class=\"altRow\"", loc.slice(4)].join('');
+                    else
+                        rows[ind] = [loc.slice(0, 4), " class=\"regRow\"", loc.slice(4)].join('');
+                    $('#tabSuperbowl').append(rows[ind]);
+                });
+
+
+                //if the superbowl is done (from JSON)
+                if (bSupDone) {
+                    $('#dWinner').text(supWinner + " has won the superbowl!"); //set the winner
+
+                    $('#dDraftOrder').empty(); //empty the draft order
+                    $('#dDraftOrder').append(draftOrder); //display the draft order (note: this does not change dynamically, since it could cause misinformation)
+                }
+            }
+
+            //if the superbowl isn't done, hide the superbowl stuff
+            else {
+                $('#dSuperbowl').hide();
+                $('#tabSupOuter').hide();
+                $('#dWinner').hide();
+                $('#dDraftOrder').hide();
+            }
+        }
+
+        function loadalldata(callBackFn, year) {
+            //get JSON from GetJSON.aspx, include command getdata and the year you want
+            var url = "GetJSON.aspx?command=getdata&year=" + year;
+            $.ajaxSetup({ cache: false });
+            $.getJSON(url,
+                function (data) {
+                    if (data.length == 0) {
+                        document.write("Error: no data!");
+                        return;
+                    }
+
+                    iYear = data[0]; //year the person chose, should be same as year passed in
+                    oldSiteLoc = data[1]; //address of the old HFL site
+                    points = data[2]; //contains team objects, with points, standings, and week 15/16 points
+                    totalLine = data[3]; //contains the total line from the points, since I'm apparantly too lazy to figure it out dynamically
+                    showSuperbowl = data[4]; //should I show the superbowl?
+                    bSupDone = data[5]; //has the superbowl ended? (yes if no week 16 scores are 0)
+                    if (bSupDone) //if the superbowl is done get next year's draft order
+                        draftOrder = data[6];
+                })
+            .fail(function (jqXHR, textstatus, errorthrown) {
+                console.log("error: " + textstatus);
+                console.log("info: " + errorthrown);
+                console.log("incoming text: " + jqXHR);
+            })
+            .always(function () {
+                //then call the function passed in, which processes the data we just received between the slider weeks
+                callBackFn($('#slider-range').slider("values", 0), $('#slider-range').slider("values", 1));
+            })
+        }
+
+        //found on the internet, way to get a QueryString value
+        function getParameterByName(name) {
+            name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+            var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+                results = regex.exec(location.search);
+            return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+        }
+
+        //insertion sort used to parallel sort the second array by the values in the first array
+        function insertionSort(arrayToSortBy, parallelArray) {
+            for (i = 0; i < arrayToSortBy.length; i++) {
+                tempScore = arrayToSortBy[i];
+                tempRow = parallelArray[i];
+
+                for (j = i - 1; j > -1 && arrayToSortBy[j] > tempScore; j--) {
+                    arrayToSortBy[j + 1] = arrayToSortBy[j];
+                    parallelArray[j + 1] = parallelArray[j];
+                }
+
+                arrayToSortBy[j + 1] = tempScore;
+                parallelArray[j + 1] = tempRow;
+            }
+
+            parallelArray.reverse();
+        }
+
+        //slider
+        $(function () {
+            $("#slider-range").slider({
+                range: true,
+                min: 1,
+                max: 14,
+                values: [1, 14],
+                slide: function (event, ui) {
+                    datareceived(ui.values[0], ui.values[1]); //when a slide happens, redisplay the data between the weeks chosen
+                }
+            })
+        /* website I used to make the custom css for the slider
+        http://download.jqueryui.com/themeroller/#!zThemeParams=5d000001001c06000000000000003d888
+        8d844329a8dfe02723de3e570162cf18d27450c454aa2f2e374d1d127fabb9ebc66c3ee5a70fb154870371702
+        db6720bcd83f0ecbb2131337f10a086e219c538a2003e4a05b37f637b91dbf9e5ea1a31071be2b70b1c5a1544
+        d7558714db07b074a0c1602dec1a83d8a994b4e819a6583a50418cf144a10641dac66855793d76b51cfa15639
+        35a65d1873101b3fe022e63ab6defb5101341507d9626ed656221c42ffca472d18de94aa592bf6f6e276cb7d3
+        c1b51c7e96e6bcce74122e53cfb5403cf6f88318f56c359df22ffa64003af8463a996b70bd6d7ed81ecef9469
+        5da0e74d859a66e220bf28b6978d855ad07c1d405aae47f176c2af42c3f24f13a9533ed4dd3417eb72ccd2a45
+        16d95f7036bf169cbfdbd1f7dc2366791f104f32707ca68e63ad7b1d1bac61145f8a0a124f5cf9373ed7b17c3
+        acfb6bb72e7a1c7b4db5052b806be38188a46fd49da45c79a97e7af7557f11b190984915509e730bb397d2c90
+        68358cd59eae8883ea1672b040f480b1c97b94982c64bec99bae960221736815a0593792c7f10fbd82b74020f
+        85c643161cab9c5be51ba3f69860339984eb8411af701029f729406ffc4d46f73af070e9376653859191e77b5
+        d7d42e702f180ce923682b6e7f785da44e4eddc7de5249e6cabcdf84fd46e0a0b520c3b1e61e59082534ef9e4
+        6c419f33dc2cd152cf1814d98884167bf8e4d848b4ffeeb6b1c8
+        */
+        });
+
+        /*function doit(obj) {
+            $("#second").text("I am number 2.");
+            $(".special").text("i am special.");
+    
+            //$("div").text("I am a div.");
+            //console.log($("#" + obj.id)).text();
+            loadalldata(datareceived);
+        }*/
+        
+
+    </script>
+</head>
+
+<body style="margin: 10px 0px 20px 30px;">
+    <div class="outerTable" style="padding: 15px 15px 0px 15px; z-index: 5">
+        <ul id="gooeymenu1" class="gelbuttonmenu" style="z-index: 13;">
+            <li><a class="mainLink" id="pageTitle">HFL 2014</a></li>
+            <li><a class="mainLink" href="HallOfFame.html">Hall of Fame</a></li>
+            <li><a class="mainLink" target="_blank" href="http://football.fantasysports.yahoo.com/">Yahoo</a></li>
+            <li><a class="mainLink" id="draftLink" target="_blank" href="Draft2014.htm">Year Draft</a></li>
+            <li><a class="mainLink" href="HFL rules.docx">Rules</a></li>
+            <li><a class="mainLink" target="_blank" href="http://espn.go.com/nfl/injuries">NFL Injuries</a></li>
+            <li><a class="mainLink" target="_blank" href="http://espn.go.com/nfl/schedule/_/seasontype/2/week/1">NFL Schedule</a></li>
+            <li><a class="mainLink" data-flexmenu="flexmenu1">Past Seasons</a></li>
+        </ul>
+    </div>
+    <br />
+    <ul id="flexmenu1" class="flexdropdownmenu">
+        <li><a id="selA0" onclick="selYear_SelectedIndexChanged($('#selA0').text())">Current Year</a></li>
+    </ul>
+    
+    <div id="dScores" class="tableTitle" style="padding: 0px 0px 3px 0px; width: 1100px; display: inline-block;">Overall Points
+        <span style="font-size: 18px; display: inline-block;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Show scores between weeks&nbsp;</span>&nbsp;&nbsp;
+        <span id="slider-range" style="width: 550px; display: inline-block;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+    </div>
+    
+    <div class="outerTable">
+        <div id="tabScores" class="innerTable"></div>
+    </div>
+
+    <br />
+
+    <div id="dStandings" class="tableTitle" style="padding: 0px 0px 3px 0px;">Standings</div>
+    <div class="outerTable">
+        <div id="tabStandings" class="innerTable"></div>
+    </div>
+
+    <br />
+
+    <div id="dSuperbowl" class="tableTitle" style="padding: 0px 0px 3px 0px;">Superbowl</div>
+    <div id = "tabSupOuter">
+        <div id="tabSuperbowl" class="innerTable"></div>
+    </div>
+
+    <br />
+
+    <div id="dWinner" class="tableTitle" style="color: Red; font-size: 24px"></div>
+    
+    <br />
+
+    <div id="dDraftOrder" class="tableTitle"></div>
+    
+    <br />
+
+    <div class="tableTitle">Formations</div>
+    <div class="outerTable" style="width: 425px;">
+        <div id="tabFormations" class="innerTable" style="width: 425px;">
+            <div class="regRow">
+                <span class="colTeamName" style="min-width: 150px;">Standard</span>
+                <span style="min-width: 260px; display: inline-block;">2 QB &nbsp;3 RB &nbsp;3 WR/TE&nbsp; 1 K &nbsp;1 DEF&nbsp;&nbsp;</span>
+            </div>
+            <div class="altRow">
+                <span class="colTeamName" style="min-width: 150px;">Wishbone</span>
+                <span style="min-width: 260px; display: inline-block;">2 QB &nbsp;4 RB &nbsp;1 WR 1 TE&nbsp; 1 K &nbsp;1 DEF&nbsp;&nbsp;</span>
+            </div>
+            <div class="regRow">
+                <span class="colTeamName" style="min-width: 150px;">Run and Shoot</span>
+                <span style="min-width: 260px; display: inline-block;">2 QB &nbsp;1 RB &nbsp;5 WR&nbsp; 1 K &nbsp;1 DEF&nbsp;&nbsp;</span>
+            </div>
+            <div class="altRow">
+                <span class="colTeamName" style="min-width: 150px;">West Coast</span>
+                <span style="min-width: 260px; display: inline-block;">3 QB &nbsp;2 RB &nbsp;1 WR  2 TE &nbsp;1 K &nbsp;1 DEF&nbsp;&nbsp;</span>
+            </div>
+        </div>
+    </div>
+
+    <!--<a id="realid" href="#" onclick="doit(this);">click here</a>  from first jQuery training-->
+<script>
+    gooeymenu.setup({ id: 'gooeymenu1', selectitem: 0 });
+
+    for (i = 1997; i <= iDefaultYear; i++)
+        $('#flexmenu1').append("<li><a id=\"selA" + i + "\" onclick=\"selYear_SelectedIndexChanged($('#selA" + i + "').text())\">" + i + "</a></li>");
+</script>
+</body>
+</html>

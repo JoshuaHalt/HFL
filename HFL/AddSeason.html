@@ -1,0 +1,261 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Add A New Season</title>
+
+    <link href="HFL.css" rel="stylesheet" type="text/css" />
+    <script src="Scripts/jquery-1.11.1.min.js"></script>
+    <script src="Scripts/jquery-ui.js"></script>
+    <script src="Scripts/HFL.js"></script>
+
+    <script>
+        var thisYear;
+        var lastYearTeams;
+
+        function OnLoad()
+        {
+            //use JSON to get the year and team count from that year
+            loadalldata(processData)
+        }
+
+        function loadalldata(callBackFn) {
+            //get JSON from GetJSON.aspx, include command getdata and the year you want
+            var url = "GetJSON.aspx?command=getYear";
+            $.ajaxSetup({ cache: false });
+            $.getJSON(url,
+                function (data) {
+                    if (data.length == 0) {
+                        document.write("Error: no data!");
+                        return;
+                    }
+
+                    thisYear = data[0]; //the default year
+                    lastYearTeams = data[1] //the team count last year, used to guess this year's team count
+                })
+            .fail(function (jqXHR, textstatus, errorthrown) {
+                console.log("error: " + textstatus);
+                console.log("info: " + errorthrown);
+                console.log("incoming text: " + jqXHR);
+            })
+            .always(function () {
+                callBackFn();
+            })
+        }
+
+        function sendData()
+        {
+            //set up the data to send back to the server to edit the XML file
+            var packet = iDefaultYear + "|"; //year's XML file to edit
+            packet += weekToAdd + "|"; //week to add/edit in the XML file
+            
+            //add in each person's name and their score from the textboxes like "|Joshua 127|Chris 122|"
+            for (i = 0; i < teamNames.length; i++) {
+                packet += document.getElementById("lb" + teamNames[i]).innerHTML.substr(0, document.getElementById("lb" + teamNames[i]).innerHTML.indexOf(':')) + " ";
+                packet += document.getElementById("tb" + teamNames[i]).value + "|";
+            }
+
+            packet = escape(packet); //this is there to make sure transmitting data is safe
+
+            //send the JSON
+            $.ajax({
+                type: "POST",
+                url: "SetJSON.aspx/SetAddData",
+                data: '{"allData": "' + packet + '"}',
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (response) {
+                    var msg = response.d;
+                    if (msg == "Success")
+                        document.getElementById('viewLink').innerHTML = "Scores updated successfully. <a href=\"HFL.html\">View updated site</a>"; //success
+                    else
+                        $('#viewLink').text("Error: " + msg); //error case
+                },
+                failure: function (response) {
+                    alert('failed: ' + response.d);
+                }
+            });
+        }
+
+        function processData()
+        {
+            $('#dTitle').text("Begin the " + (thisYear + 1).toString() + " season"); //new title
+
+            $('#txtTeamCount').val(lastYearTeams.length.toString()); //default team count
+
+            //generate the header
+            sLine = "<div id=\"dAddHeader\" style=\"line-height: 1.7; color: #0013E0\">" +
+                "<span style=\"width: 54px; display: inline-block;\">Owner</span>" +
+                "<span style=\"width: 5px; display: inline-block;\"></span>" +
+                "<span style=\"width: 173px; display: inline-block;\">Team Name</span>" +
+                "<span style=\"width: 5px; display: inline-block;\"></span>" +
+                "<span class=\"width: 54px; display: inline-block;\">Yahoo ID</span></div>";
+            $("#textBoxGroup").append(sLine);
+            
+            //make last year's team count number of text boxes, prefill them with last year's names
+            for (i = 0; i < lastYearTeams.length; i++) {
+                sLine = "<div id=\"dPlayer" + i.toString() + "\" style=\"line-height: 1.8\">" +
+                    "<input type=\"text\" class=\"addOwnerYahoo\" style=\"font-weight: bold;\" id=\"txtOwner" + i.toString() + "\" value=\"" + lastYearTeams[i] + "\" />" +
+                    "<span style=\"width: 5px; display: inline-block;\"></span>" +
+                    "<input type=\"text\" id=\"txtName" + i.toString() + "\"/>" +
+                    "<span style=\"width: 5px; display: inline-block;\"></span>" +
+                    "<input type=\"text\" class=\"addOwnerYahoo\" id=\"txtYahoo" + i.toString() + "\"/>" +
+                    "<span style=\"width: 5px; display: inline-block;\"></span>" +
+                    "<div id=\"dvError" + i.toString() + "\" class=\"smallError\"></div></div>";
+                $("#textBoxGroup").append(sLine);
+            }
+        }
+
+        function btnSubmit_click()
+        {
+            //reset Yahoo URL error message to empty
+            $('#dYahooURLError').text("");
+
+            //if the Yahoo URL text box is empty, give an error and return
+            if ($('#txtYahooURL').val() == "" || $('#txtYahooURL').val() == " ") {
+                $('#dYahooURLError').text("Error: Please provide the Yahoo fantasy site URL.");
+                flag = true;
+            }
+
+            //check each row of textboxes
+            for (i = 0; i < $('#txtTeamCount').val() ; i++) {
+                $('#dvError' + i).text(""); //reset the row's error div to empty
+
+                //empty textboxes or space in textboxes, no idea how that would happen but checking anyway
+                if ($('#txtOwner' + i).val() == "" || $('#txtOwner' + i).val() == " ") {
+                    $('#dvError' + i).text("Error: Owner textbox in this row is empty. Please enter an HFL player's name.");
+                    flag = true;
+                }
+                if ($('#txtName' + i).val() == "" || $('#txtName' + i).val() == " ") {
+                    $('#dvError' + i).text("Error: Team Name textbox in this row is empty. Please enter a team name.");
+                    flag = true;
+                }
+                if ($('#txtYahoo' + i).val() == "" || $('#txtYahoo' + i).val() == " ") {
+                    $('#dvError' + i).text("Error: Yahoo ID textbox in this row is empty. Please enter a number.");
+                    flag = true;
+                }
+
+                //yahoo ID textbox with a non-number in it
+                if ($('#txtYahoo' + i).val() % 1 != 0) {
+                    $('#dvError' + i).text("Error: Yahoo ID textbox in this row doesn't contain a number.");
+                    flag = true;
+                }
+            }
+
+            //if the flag is true, there was at least one error, so return
+            if (flag)
+                return;
+
+            //if you get here, data is probably good, so send it to edit the XML file
+            sendData();
+        }
+    
+        function txtTeamCount_type() {
+            $('#dCountError').text(""); //reset error div to empty
+            $('#txtTeamCount').css("background-color", "White"); //reset background of textbox to white
+
+            //if text field is empty, reset error status and don't rebuild textboxes
+            if ($('#txtTeamCount').val() == "" || $('#txtTeamCount').val() == " ") {
+                $('#txtTeamCount').css("background-color", "White");
+                return;
+            }
+
+            if ($('#txtTeamCount').val() % 1 != 0) {
+                $('#txtTeamCount').css("background-color", "#FFA3A3");
+                return;
+            }
+
+            //now data is valid (probably), so create the entered number of rows of textboxes
+            numOfRows = parseInt($('#txtTeamCount').val());
+            $('#textBoxGroup').empty();
+
+            //remake header
+            sLine = "<div id=\"dAddHeader\" style=\"line-height: 1.7; color: #0013E0\">" +
+                "<span style=\"width: 54px; display: inline-block;\">Owner</span>" +
+                "<span style=\"width: 5px; display: inline-block;\"></span>" +
+                "<span style=\"width: 173px; display: inline-block;\">Team Name</span>" +
+                "<span style=\"width: 5px; display: inline-block;\"></span>" +
+                "<span style=\"width: 80px; display: inline-block;\">Yahoo ID</span></div>";
+            $("#textBoxGroup").append(sLine);
+
+            //if there's a new player (or the same amount), create that many new
+            if (numOfRows >= lastYearTeams.length) {
+                //make last year's team count number of text boxes, prefill them with last year's names
+                for (i = 0; i < lastYearTeams.length; i++) {
+                    sLine = "<div id=\"dPlayer" + i.toString() + "\" style=\"line-height: 1.8\">" +
+                        "<input type=\"text\" class=\"addOwnerYahoo\" style=\"font-weight: bold;\" id=\"txtOwner" + i.toString() + "\" value=\"" + lastYearTeams[i] + "\" />" +
+                        "<span style=\"width: 5px; display: inline-block;\"></span>" +
+                        "<input type=\"text\" id=\"txtName" + i.toString() + "\"/>" +
+                        "<span style=\"width: 5px; display: inline-block;\"></span>" +
+                        "<input type=\"text\" class=\"addOwnerYahoo\" id=\"txtYahoo" + i.toString() + "\"/>" +
+                        "<div id=\"dvError" + i.toString() + "\" class=\"smallError\"></div></div>";
+                    $("#textBoxGroup").append(sLine);
+                }
+                rowsLeft = numOfRows - lastYearTeams.length;
+                for (i = lastYearTeams.length; i < lastYearTeams.length + rowsLeft; i++) {
+                    sLine = "<div id=\"dPlayer" + i.toString() + "\" style=\"line-height: 1.8\">" +
+                        "<input type=\"text\" class=\"addOwnerYahoo\" style=\"font-weight: bold;\" id=\"txtOwner" + i.toString() + "\" value=\"\" />" +
+                        "<span style=\"width: 5px; display: inline-block;\"></span>" +
+                        "<input type=\"text\" id=\"txtName" + i.toString() + "\"/>" +
+                        "<span style=\"width: 5px; display: inline-block;\"></span>" +
+                        "<input type=\"text\" class=\"addOwnerYahoo\" id=\"txtYahoo" + i.toString() + "\"/>" +
+                        "<div id=\"dvError" + i.toString() + "\" class=\"smallError\"></div></div>";
+                    $("#textBoxGroup").append(sLine);
+                }
+            }
+
+            //if there's less than last year's team count, just make them all empty
+            else {
+                for (i = 0; i < numOfRows; i++) {
+                    sLine = "<div id=\"dPlayer" + i.toString() + "\" style=\"line-height: 1.8\">" +
+                        "<input type=\"text\" class=\"addOwnerYahoo\" style=\"font-weight: bold;\" id=\"txtOwner" + i.toString() + "\" value=\"\" />" +
+                        "<span style=\"width: 5px; display: inline-block;\"></span>" +
+                        "<input type=\"text\" id=\"txtName" + i.toString() + "\"/>" +
+                        "<span style=\"width: 5px; display: inline-block;\"></span>" +
+                        "<input type=\"text\" class=\"addOwnerYahoo\" id=\"txtYahoo" + i.toString() + "\"/>" +
+                        "<div id=\"dvError" + i.toString() + "\" class=\"error\"></div></div>";
+                    $("#textBoxGroup").append(sLine);
+                }
+            }
+        }
+    </script>
+</head>
+
+<body style="font-family: 'Trebuchet MS'">
+    <div class="tableTitle" id="dTitle">Begin the 2014 Season</div> <!--Title line-->
+
+    <br />
+
+    <!--Span for a label, space, and the textbox to get the number of players this season-->
+    <div>
+        <span>How many HFL teams are playing this season?</span>
+        <span style="width: 10px; display: inline-block;"></span>
+        <input type="text" id="txtTeamCount" class="smallerText" onkeyup="txtTeamCount_type()" />
+    </div>
+
+    <br />
+
+    <!--Will be dynamically loaded with 3 textboxes and a div (in case of error)-->
+    <div id="textBoxGroup"></div>
+
+    <br /> <br />
+
+    <!--Span for a label, span for an example of correct data, textbox for the Yahoo URL, and a div (in case of error)-->
+    <div>
+        <span>Just one other question: what's the URL of the Yahoo League page this year?</span>
+        <br />
+        <span style="color: darkblue; font-size: small; font-style: italic">Example: http://football.fantasysports.yahoo.com/f1/519112</span>
+        <br />
+        <input type="text" id="txtYahooURL" style="width: 513px;"/>
+        <div id="dYahooURLError" class="smallError"></div>
+    </div>
+    
+    <br /> <br />
+    
+    <!--Save button, span for buffer space, div for Success message-->
+    <div>
+        <input type="button" id="btnSubmit" class="saveButton" value="Save Season Info" onclick="btnSubmit_click()" />
+        <span style="width: 50px; display: inline-block;"></span>
+        <div style="display:inline-block;" id="viewLink" class="tableTitle"></div>
+    </div>
+</body>
+</html>
