@@ -9,7 +9,7 @@
     <script src="Scripts/HFL.js"></script>
 
     <script>
-        var thisYear;
+        var lastYear;
         var lastYearTeams;
 
         function OnLoad()
@@ -29,7 +29,7 @@
                         return;
                     }
 
-                    thisYear = data[0]; //the default year
+                    lastYear = data[0]; //the default year
                     lastYearTeams = data[1] //the team count last year, used to guess this year's team count
                 })
             .fail(function (jqXHR, textstatus, errorthrown) {
@@ -45,40 +45,41 @@
         function sendData()
         {
             //set up the data to send back to the server to edit the XML file
-            var packet = iDefaultYear + "|"; //year's XML file to edit
-            packet += weekToAdd + "|"; //week to add/edit in the XML file
+            var packet = (lastYear + 1).toString() + "|"; //year's XML file to create
+            packet += $("#txtYahooURL").val() + "|"; //Yahoo HFL website URL
             
-            //add in each person's name and their score from the textboxes like "|Joshua 127|Chris 122|"
-            for (i = 0; i < teamNames.length; i++) {
-                packet += document.getElementById("lb" + teamNames[i]).innerHTML.substr(0, document.getElementById("lb" + teamNames[i]).innerHTML.indexOf(':')) + " ";
-                packet += document.getElementById("tb" + teamNames[i]).value + "|";
+            //add in each owner's name, team name, and yahoo ID like "|Joshua^Healthcare Techies^4|
+            for (i = 0; i < $('#txtTeamCount').val() ; i++) {
+                packet += $('#txtOwner' + i).val() + '^';
+                packet += $('#txtTeam' + i).val() + '^';
+                packet += $('#txtYahoo' + i).val() + '|';
             }
 
             packet = escape(packet); //this is there to make sure transmitting data is safe
 
             //send the JSON
-            $.ajax({
-                type: "POST",
-                url: "SetJSON.aspx/SetAddData",
-                data: '{"allData": "' + packet + '"}',
-                contentType: "application/json; charset=utf-8",
-                dataType: "json",
-                success: function (response) {
-                    var msg = response.d;
-                    if (msg == "Success")
-                        document.getElementById('viewLink').innerHTML = "Scores updated successfully. <a href=\"HFL.html\">View updated site</a>"; //success
-                    else
-                        $('#viewLink').text("Error: " + msg); //error case
-                },
-                failure: function (response) {
-                    alert('failed: ' + response.d);
-                }
-            });
+            //$.ajax({
+            //    type: "POST",
+            //    url: "SetJSON.aspx/SetAddData",
+            //    data: '{"allData": "' + packet + '"}',
+            //    contentType: "application/json; charset=utf-8",
+            //    dataType: "json",
+            //    success: function (response) {
+            //        var msg = response.d;
+            //        if (msg == "Success")
+            //            document.getElementById('viewLink').innerHTML = "Scores updated successfully. <a href=\"HFL.html\">View updated site</a>"; //success
+            //        else
+            //            $('#viewLink').text("Error: " + msg); //error case
+            //    },
+            //    failure: function (response) {
+            //        alert('failed: ' + response.d);
+            //    }
+            //});
         }
 
         function processData()
         {
-            $('#dTitle').text("Begin the " + (thisYear + 1).toString() + " season"); //new title
+            $('#dTitle').text("Begin the " + (lastYear + 1).toString() + " season"); //new title
 
             $('#txtTeamCount').val(lastYearTeams.length.toString()); //default team count
 
@@ -96,7 +97,7 @@
                 sLine = "<div id=\"dPlayer" + i.toString() + "\" style=\"line-height: 1.8\">" +
                     "<input type=\"text\" class=\"addOwnerYahoo\" style=\"font-weight: bold;\" id=\"txtOwner" + i.toString() + "\" value=\"" + lastYearTeams[i] + "\" />" +
                     "<span style=\"width: 5px; display: inline-block;\"></span>" +
-                    "<input type=\"text\" id=\"txtName" + i.toString() + "\"/>" +
+                    "<input type=\"text\" id=\"txtTeam" + i.toString() + "\"/>" +
                     "<span style=\"width: 5px; display: inline-block;\"></span>" +
                     "<input type=\"text\" class=\"addOwnerYahoo\" id=\"txtYahoo" + i.toString() + "\"/>" +
                     "<span style=\"width: 5px; display: inline-block;\"></span>" +
@@ -107,13 +108,15 @@
 
         function btnSubmit_click()
         {
+            errorFlag = false;
+
             //reset Yahoo URL error message to empty
             $('#dYahooURLError').text("");
 
             //if the Yahoo URL text box is empty, give an error and return
             if ($('#txtYahooURL').val() == "" || $('#txtYahooURL').val() == " ") {
                 $('#dYahooURLError').text("Error: Please provide the Yahoo fantasy site URL.");
-                flag = true;
+                errorFlag = true;
             }
 
             //check each row of textboxes
@@ -123,26 +126,26 @@
                 //empty textboxes or space in textboxes, no idea how that would happen but checking anyway
                 if ($('#txtOwner' + i).val() == "" || $('#txtOwner' + i).val() == " ") {
                     $('#dvError' + i).text("Error: Owner textbox in this row is empty. Please enter an HFL player's name.");
-                    flag = true;
+                    errorFlag = true;
                 }
-                if ($('#txtName' + i).val() == "" || $('#txtName' + i).val() == " ") {
+                if ($('#txtTeam' + i).val() == "" || $('#txtTeam' + i).val() == " ") {
                     $('#dvError' + i).text("Error: Team Name textbox in this row is empty. Please enter a team name.");
-                    flag = true;
+                    errorFlag = true;
                 }
                 if ($('#txtYahoo' + i).val() == "" || $('#txtYahoo' + i).val() == " ") {
                     $('#dvError' + i).text("Error: Yahoo ID textbox in this row is empty. Please enter a number.");
-                    flag = true;
+                    errorFlag = true;
                 }
 
                 //yahoo ID textbox with a non-number in it
                 if ($('#txtYahoo' + i).val() % 1 != 0) {
                     $('#dvError' + i).text("Error: Yahoo ID textbox in this row doesn't contain a number.");
-                    flag = true;
+                    errorFlag = true;
                 }
             }
 
             //if the flag is true, there was at least one error, so return
-            if (flag)
+            if (errorFlag)
                 return;
 
             //if you get here, data is probably good, so send it to edit the XML file
@@ -184,7 +187,7 @@
                     sLine = "<div id=\"dPlayer" + i.toString() + "\" style=\"line-height: 1.8\">" +
                         "<input type=\"text\" class=\"addOwnerYahoo\" style=\"font-weight: bold;\" id=\"txtOwner" + i.toString() + "\" value=\"" + lastYearTeams[i] + "\" />" +
                         "<span style=\"width: 5px; display: inline-block;\"></span>" +
-                        "<input type=\"text\" id=\"txtName" + i.toString() + "\"/>" +
+                        "<input type=\"text\" id=\"txtTeam" + i.toString() + "\"/>" +
                         "<span style=\"width: 5px; display: inline-block;\"></span>" +
                         "<input type=\"text\" class=\"addOwnerYahoo\" id=\"txtYahoo" + i.toString() + "\"/>" +
                         "<div id=\"dvError" + i.toString() + "\" class=\"smallError\"></div></div>";
@@ -195,7 +198,7 @@
                     sLine = "<div id=\"dPlayer" + i.toString() + "\" style=\"line-height: 1.8\">" +
                         "<input type=\"text\" class=\"addOwnerYahoo\" style=\"font-weight: bold;\" id=\"txtOwner" + i.toString() + "\" value=\"\" />" +
                         "<span style=\"width: 5px; display: inline-block;\"></span>" +
-                        "<input type=\"text\" id=\"txtName" + i.toString() + "\"/>" +
+                        "<input type=\"text\" id=\"txtTeam" + i.toString() + "\"/>" +
                         "<span style=\"width: 5px; display: inline-block;\"></span>" +
                         "<input type=\"text\" class=\"addOwnerYahoo\" id=\"txtYahoo" + i.toString() + "\"/>" +
                         "<div id=\"dvError" + i.toString() + "\" class=\"smallError\"></div></div>";
@@ -209,7 +212,7 @@
                     sLine = "<div id=\"dPlayer" + i.toString() + "\" style=\"line-height: 1.8\">" +
                         "<input type=\"text\" class=\"addOwnerYahoo\" style=\"font-weight: bold;\" id=\"txtOwner" + i.toString() + "\" value=\"\" />" +
                         "<span style=\"width: 5px; display: inline-block;\"></span>" +
-                        "<input type=\"text\" id=\"txtName" + i.toString() + "\"/>" +
+                        "<input type=\"text\" id=\"txtTeam" + i.toString() + "\"/>" +
                         "<span style=\"width: 5px; display: inline-block;\"></span>" +
                         "<input type=\"text\" class=\"addOwnerYahoo\" id=\"txtYahoo" + i.toString() + "\"/>" +
                         "<div id=\"dvError" + i.toString() + "\" class=\"error\"></div></div>";
