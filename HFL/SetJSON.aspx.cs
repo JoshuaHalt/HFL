@@ -93,9 +93,14 @@ namespace HFL
                 string yahooURL = newSeasonData[1];
                 newSeasonData.RemoveRange(0, 2);
 
+                XmlDocument xDoc = new XmlDocument();
+                xDoc.Load(HttpContext.Current.Request.PhysicalApplicationPath + "\\xml\\Settings.xml");
+                xDoc.SelectSingleNode("settings/year").InnerText = iYear.ToString();
+                xDoc.SelectSingleNode("settings/yahooURL").InnerText = yahooURL;
+                xDoc.Save(HttpContext.Current.Request.PhysicalApplicationPath + "\\xml\\Settings.xml");                
+
                 System.IO.File.Copy(HttpContext.Current.Request.PhysicalApplicationPath + "\\xml\\" + (iYear - 1) + ".xml", HttpContext.Current.Request.PhysicalApplicationPath + "\\xml\\" + iYear + ".xml");
 
-                XmlDocument xDoc = new XmlDocument();
                 xDoc.Load(HttpContext.Current.Request.PhysicalApplicationPath + "\\xml\\" + iYear + ".xml");
 
                 XmlNode parentTeamNode = xDoc.SelectSingleNode("hfl/teams"), parentWeekNode = xDoc.SelectSingleNode("hfl/weeks"),
@@ -135,7 +140,7 @@ namespace HFL
 
                 parentWeekNode.AppendChild(childWeekNode);
 
-                xDoc.Save(HttpContext.Current.Request.PhysicalApplicationPath + "\\xml\\" + iYear + ".xml");                
+                xDoc.Save(HttpContext.Current.Request.PhysicalApplicationPath + "\\xml\\" + iYear + ".xml");
                 
                 return "Success";
             }

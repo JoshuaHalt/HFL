@@ -108,6 +108,7 @@
     <Content Include="xml\2014.xml">
       <SubType>Designer</SubType>
     </Content>
+    <Content Include="xml\Settings.xml" />
     <Content Include="xml\HallOfFame.xml" />
   </ItemGroup>
   <ItemGroup>
