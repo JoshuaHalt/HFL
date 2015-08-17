@@ -72,5 +72,79 @@ namespace HFL
                 return "Error: " + ex.Message;
             }
         }
+
+        [WebMethod]
+        public static string SetAddSeasonData(object allData)
+        {
+            string deserial = HttpUtility.UrlDecode(allData.ToString()); //get a string from the object passed in and make the characters normal
+
+            List<string> newData = deserial.Split('|').ToList<string>(); //split the data by "|"
+            newData.RemoveAt(newData.Count - 1); //remove the last element, which is ""
+
+            return CreateNewSeason(newData);
+        }
+
+        private static string CreateNewSeason(List<string> newSeasonData)
+        {
+            //try... cause so much can go wrong
+            try
+            {
+                int iYear = Convert.ToInt16(newSeasonData[0]);
+                string yahooURL = newSeasonData[1];
+                newSeasonData.RemoveRange(0, 2);
+
+                System.IO.File.Copy(HttpContext.Current.Request.PhysicalApplicationPath + "\\xml\\" + (iYear - 1) + ".xml", HttpContext.Current.Request.PhysicalApplicationPath + "\\xml\\" + iYear + ".xml");
+
+                XmlDocument xDoc = new XmlDocument();
+                xDoc.Load(HttpContext.Current.Request.PhysicalApplicationPath + "\\xml\\" + iYear + ".xml");
+
+                XmlNode parentTeamNode = xDoc.SelectSingleNode("hfl/teams"), parentWeekNode = xDoc.SelectSingleNode("hfl/weeks"),
+                        childTeamNode = parentTeamNode.ChildNodes[0].Clone(), childWeekNode = parentWeekNode.ChildNodes[0].Clone();
+                childTeamNode.RemoveAll();
+                childWeekNode.RemoveAll();
+
+                XmlAttribute weekID = xDoc.CreateAttribute("id");
+                weekID.Value = "1";
+                childWeekNode.Attributes.Append(weekID);
+
+                parentTeamNode.RemoveAll();
+                parentWeekNode.RemoveAll();
+
+                for (int i = 0; i < newSeasonData.Count; i++)
+                {
+                    List<string> team = newSeasonData[i].Split('^').ToList<string>();
+                    XmlNode tempTeamNode = childTeamNode.Clone();
+                    XmlAttribute id = xDoc.CreateAttribute("id"), name = xDoc.CreateAttribute("name"),
+                        owner = xDoc.CreateAttribute("owner"), yahooID = xDoc.CreateAttribute("yahooID"),
+                        weekScore = xDoc.CreateAttribute(team[0]);
+                    
+                    id.Value = (i + 1).ToString();
+                    name.Value = team[1];
+                    owner.Value = team[0];
+                    yahooID.Value = team[2];
+                    weekScore.Value = "0";
+
+                    tempTeamNode.Attributes.Append(id);
+                    tempTeamNode.Attributes.Append(name);
+                    tempTeamNode.Attributes.Append(owner);
+                    tempTeamNode.Attributes.Append(yahooID);
+                    childWeekNode.Attributes.Append(weekScore);
+
+                    parentTeamNode.AppendChild(tempTeamNode);
+                }
+
+                parentWeekNode.AppendChild(childWeekNode);
+
+                xDoc.Save(HttpContext.Current.Request.PhysicalApplicationPath + "\\xml\\" + iYear + ".xml");                
+                
+                return "Success";
+            }
+
+            //catch an exception if there is one
+            catch (Exception ex)
+            {
+                return "Error: " + ex.Message;
+            }
+        }
     }
 }

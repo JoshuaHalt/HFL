@@ -15,10 +15,10 @@
         function OnLoad()
         {
             //use JSON to get the year and team count from that year
-            loadalldata(processData)
+            loadAlldata(processData)
         }
 
-        function loadalldata(callBackFn) {
+        function loadAlldata(callBackFn) {
             //get JSON from GetJSON.aspx, include command getdata and the year you want
             var url = "GetJSON.aspx?command=getYear";
             $.ajaxSetup({ cache: false });
@@ -48,7 +48,7 @@
             var packet = (lastYear + 1).toString() + "|"; //year's XML file to create
             packet += $("#txtYahooURL").val() + "|"; //Yahoo HFL website URL
             
-            //add in each owner's name, team name, and yahoo ID like "|Joshua^Healthcare Techies^4|
+            //add in each owner's name, team name, and yahoo ID like "|Joshua^The Walking Meds^4|
             for (i = 0; i < $('#txtTeamCount').val() ; i++) {
                 packet += $('#txtOwner' + i).val() + '^';
                 packet += $('#txtTeam' + i).val() + '^';
@@ -58,23 +58,27 @@
             packet = escape(packet); //this is there to make sure transmitting data is safe
 
             //send the JSON
-            //$.ajax({
-            //    type: "POST",
-            //    url: "SetJSON.aspx/SetAddData",
-            //    data: '{"allData": "' + packet + '"}',
-            //    contentType: "application/json; charset=utf-8",
-            //    dataType: "json",
-            //    success: function (response) {
-            //        var msg = response.d;
-            //        if (msg == "Success")
-            //            document.getElementById('viewLink').innerHTML = "Scores updated successfully. <a href=\"HFL.html\">View updated site</a>"; //success
-            //        else
-            //            $('#viewLink').text("Error: " + msg); //error case
-            //    },
-            //    failure: function (response) {
-            //        alert('failed: ' + response.d);
-            //    }
-            //});
+            $.ajax({
+                type: "POST",
+                url: "SetJSON.aspx/SetAddSeasonData",
+                data: '{"allData": "' + packet + '"}',
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (response) {
+                    var msg = response.d;
+                    if (msg == "Success") {
+                        $('#sendResult').css('color', 'black');
+                        $('#sendResult').html("The new season has been created successfully. <a href=\"HFL.html\">View the new season</a>");
+                    } //success
+                    else {
+                        $('#sendResult').css('color', 'red');
+                        $('#sendResult').text(msg);
+                    } //error case
+                },
+                failure: function (response) {
+                    alert('failed: ' + response.d);
+                }
+            });
         }
 
         function processData()
@@ -113,11 +117,19 @@
             //reset Yahoo URL error message to empty
             $('#dYahooURLError').text("");
 
+            //if the Yahoo URL text box has less than 25 characters, it's probably too short
+            if ($('#txtYahooURL').val().length < 25) {
+                $('#dYahooURLError').text("Error: The Yahoo URL you provided probably too short to be correct. Please enter the correct one.");
+                errorFlag = true;
+            }
+
             //if the Yahoo URL text box is empty, give an error and return
             if ($('#txtYahooURL').val() == "" || $('#txtYahooURL').val() == " ") {
                 $('#dYahooURLError').text("Error: Please provide the Yahoo fantasy site URL.");
                 errorFlag = true;
             }
+
+            IDs = [];
 
             //check each row of textboxes
             for (i = 0; i < $('#txtTeamCount').val() ; i++) {
@@ -258,7 +270,7 @@
     <div>
         <input type="button" id="btnSubmit" class="saveButton" value="Save Season Info" onclick="btnSubmit_click()" />
         <span style="width: 50px; display: inline-block;"></span>
-        <div style="display:inline-block;" id="viewLink" class="tableTitle"></div>
+        <div style="display:inline-block;" id="sendResult" class="tableTitle"></div>
     </div>
 </body>
 </html>
