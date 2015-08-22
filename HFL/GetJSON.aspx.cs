@@ -11,10 +11,9 @@ namespace HFL
 {
     public partial class GetJSON : System.Web.UI.Page
     {
-        public string oldHFLSiteLocation = System.Configuration.ConfigurationManager.AppSettings["Old.HFL.Site.Location"];
-        public int iYearFromVariable = -1;
+        public string oldHFLSiteLocation = "", yahooURL = "";
+        public int iYearFromVariable = -1, currentYear = -1;
         List<object> lsAllDataJSON = new List<object>(), lsHallOfFame = new List<object>(), lsAddData = new List<object>(), lsYear = new List<object>();
-
 
         class Team
         {
@@ -48,6 +47,9 @@ namespace HFL
 
         protected void Page_Load(object sender, EventArgs e)
         {
+            //get the config settings variables from the Settings.xml file, all stored in globals
+            GetVarsFromSettings();
+
             //if there is no command variable, don't do anything
             if (Request.QueryString["command"] == null)
                 return;
@@ -137,7 +139,6 @@ namespace HFL
             List<Team> HFLTeams = new List<Team>();
             Team totTeam = new Team();
 
-
             //add year and old site location to JSON
             lsAllDataJSON.Add(iYearFromVariable);
             lsAllDataJSON.Add(oldHFLSiteLocation);
@@ -157,7 +158,7 @@ namespace HFL
                 attrib = docNode.Attributes["name"];
                 YahooID = docNode.Attributes["yahooID"].Value;
                 temp.yahooID = Convert.ToInt32(YahooID);
-                temp.sTeamName = "<a href=\"" + System.Configuration.ConfigurationManager.AppSettings["HFL.Yahoo.LeaguePage"] + YahooID.ToString() + "\" target=\"_blank\">" + attrib.Value + "</a>";
+                temp.sTeamName = "<a href=\"" + yahooURL + YahooID.ToString() + "\" target=\"_blank\">" + attrib.Value + "</a>";
                 attrib = docNode.Attributes["owner"];
                 temp.sOwner = attrib.Value;
                 HFLTeams.Add(temp);
@@ -292,7 +293,7 @@ namespace HFL
             }
 
             //go week by week and assign standing value to each
-            for (i = 0; i < sortedTeams[0].weeklyScores.Count; i++) ///////////////////////////
+            for (i = 0; i < sortedTeams[0].weeklyScores.Count; i++)
             {
                 //sort by weekly points
                 game2.Clear();
@@ -374,7 +375,7 @@ namespace HFL
             {
                 dSum = 0;
                 currentTeam = game[j];
-                for (i = 0; i < currentTeam.weeklyStandings.Count; i++) ////////////////////
+                for (i = 0; i < currentTeam.weeklyStandings.Count; i++)
                     dSum += currentTeam.weeklyStandings[i];
                 currentTeam.dTotalStandings = dSum;
             }
@@ -507,7 +508,7 @@ namespace HFL
                 if (xmlNL[i].Attributes["roster"].Value != "")
                 {
                     if (years[i] < 2014) //old website
-                        rosters.Add("<a href=\"" + System.Configuration.ConfigurationManager.AppSettings["Old.HFL.Site.Location"] + xmlNL[i].Attributes["roster"].Value + "\">Roster</a>");
+                        rosters.Add("<a href=\"" + oldHFLSiteLocation + xmlNL[i].Attributes["roster"].Value + "\">Roster</a>");
                     else
                         rosters.Add("<a href=\"http://www.dharmarevelation.com/hfl2/" + xmlNL[i].Attributes["roster"].Value + "\">Roster</a>");
                 }
@@ -518,7 +519,7 @@ namespace HFL
                 if (xmlNL[i].Attributes["address"].Value != "")
                 {
                     if (years[i] < 2014) //old website
-                        addresses.Add("<a href=\"" + System.Configuration.ConfigurationManager.AppSettings["Old.HFL.Site.Location"] + xmlNL[i].Attributes["address"].Value + "\">Summary</a>");
+                        addresses.Add("<a href=\"" + oldHFLSiteLocation + xmlNL[i].Attributes["address"].Value + "\">Summary</a>");
                     else
                         addresses.Add("<a href=\"http://www.dharmarevelation.com/hfl2/" + xmlNL[i].Attributes["address"].Value + "\">Summary</a>");
                 }
@@ -529,7 +530,7 @@ namespace HFL
                 if (xmlNL[i].Attributes["draft"].Value != "")
                 {
                     if (years[i] < 2014) //old website
-                        drafts.Add("<a href=\"" + System.Configuration.ConfigurationManager.AppSettings["Old.HFL.Site.Location"] + xmlNL[i].Attributes["draft"].Value + "\">Draft</a>");
+                        drafts.Add("<a href=\"" + oldHFLSiteLocation + xmlNL[i].Attributes["draft"].Value + "\">Draft</a>");
                     else
                         drafts.Add("<a href=\"http://www.dharmarevelation.com/hfl2/" + xmlNL[i].Attributes["draft"].Value + "\">Draft</a>");
                 }
@@ -596,10 +597,10 @@ namespace HFL
 
         private void GetYear()
         {
-            lsYear.Add(Convert.ToInt16(System.Configuration.ConfigurationManager.AppSettings["Default.Year"]));
+            lsYear.Add(currentYear.ToString());
 
             XmlDocument xDoc = new XmlDocument();
-            xDoc.Load(Request.PhysicalApplicationPath + "\\xml\\" + System.Configuration.ConfigurationManager.AppSettings["Default.Year"] + ".xml");
+            xDoc.Load(Request.PhysicalApplicationPath + "\\xml\\" + currentYear.ToString() + ".xml");
 
             XmlNodeList xmlNL = xDoc.GetElementsByTagName("team");
             List<string> lsPeopleNames = new List<string>();
@@ -608,10 +609,18 @@ namespace HFL
             for (int iTeam = 0; iTeam < xmlNL.Count; iTeam++)
             {
                 XmlNode docNode = xmlNL[iTeam];
-                //XmlNode docNode = xDoc.DocumentElement.SelectSingleNode("teams/team[" + iTeam.ToString() + "]");
                 lsPeopleNames.Add(docNode.Attributes["owner"].Value);
             }
             lsYear.Add(lsPeopleNames);
+        }
+
+        private void GetVarsFromSettings()
+        {
+            XmlDocument settingsDoc = new XmlDocument();
+            settingsDoc.Load(Request.PhysicalApplicationPath + "\\xml\\Settings.xml");
+            currentYear = Convert.ToInt16(settingsDoc.SelectSingleNode("settings/year").InnerText);
+            oldHFLSiteLocation = settingsDoc.SelectSingleNode("settings/OldHFLSiteLocation").InnerText;
+            yahooURL = settingsDoc.SelectSingleNode("settings/yahooURL").InnerText;
         }
     }
 }
