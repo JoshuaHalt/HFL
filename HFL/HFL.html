@@ -23,26 +23,28 @@
     <link href="Styles/GooeyMenu.css" rel="stylesheet" />
     <link href="Styles/FlexDropDown.css" rel="stylesheet" />
 
-    <!--Default year variable is on line 30-->
-
     <script>
         var alldata = [];
-/*YEAR*/var iDefaultYear = 2014; //Don't set this to a value under 2014!
-        var iYear = iDefaultYear, oldSiteLoc = "", points = [], totalLine = [], showSuperbowl = false, bSupDone = false, draftOrder = "";
+        var iYear, iCurrentYear, oldSiteLoc = "", points = [], totalLine = [], showSuperbowl = false, bSupDone = false, draftOrder = "";
         var bFirstLoad = true;
 
-        
 
         function OnLoad()
         {
-            //if there isn't a year passed in by QueryString, use the default
+            //make a call to the server to get <year> from the xml file
+            GetCurrentYear();
+
+            //if there isn't a year passed in by QueryString, use the current year
             if (window.location.href.indexOf('year=') == -1)
-                iYear = iDefaultYear;
+                iYear = iCurrentYear;
             //otherwise use the passed in year as the default
             else
                 iYear = parseInt(getParameterByName("year"));
 
             loadalldata(datareceived, iYear);
+
+            //make sure loading the gooey menu happens last
+            LoadMenu();
         }
 
         function selYear_SelectedIndexChanged(selVal)
@@ -52,13 +54,13 @@
 
             //JSON call with whatever the default year is
             else if (selVal == "Current Year")
-                loadalldata(datareceived, iDefaultYear);
+                loadalldata(datareceived, iCurrentYear);
 
-                //if it's the new site, load the data with the selected year
+            //if it's the new site, load the data with the selected year
             else if (selVal >= 2014)
                 loadalldata(datareceived, selVal);
 
-                //load the past year's address from the hall of fame xml file on the server, then open that year in a new tab
+            //load the past year's address from the hall of fame xml file on the server, then open that year in a new tab
             else {
                 var request = new XMLHttpRequest();
                 request.open("GET", "xml/HallOfFame.xml", false);
@@ -74,11 +76,19 @@
             }
         }
 
+        function GetCurrentYear() {
+            var request = new XMLHttpRequest();
+            request.open("GET", "xml/Settings.xml", false);
+            request.send();
+            var xml = request.responseXML;
+            iCurrentYear = parseInt(xml.getElementsByTagName("year")[0].textContent)
+        }
+
         function datareceived(iStartWeek, iEndWeek) {
             //put the values into the select for all the years from 1997 to latest year
             if (bFirstLoad) {
                 bFirstLoad = false;
-                for (i = 1997; i <= iDefaultYear; i++) {
+                for (i = 1997; i <= iCurrentYear; i++) {
                     $("#selYear").append("<option>" + i + "</option>");
                 }
             }
@@ -508,10 +518,12 @@
 
     <!--<a id="realid" href="#" onclick="doit(this);">click here</a>  from first jQuery training-->
 <script>
-    gooeymenu.setup({ id: 'gooeymenu1', selectitem: 0 });
+    function LoadMenu() {
+        gooeymenu.setup({ id: 'gooeymenu1', selectitem: 0 });
 
-    for (i = 1997; i <= iDefaultYear; i++)
-        $('#flexmenu1').append("<li><a id=\"selA" + i + "\" onclick=\"selYear_SelectedIndexChanged($('#selA" + i + "').text())\">" + i + "</a></li>");
+        for (i = 1997; i <= iCurrentYear; i++)
+            $('#flexmenu1').append("<li><a id=\"selA" + i + "\" onclick=\"selYear_SelectedIndexChanged($('#selA" + i + "').text())\">" + i + "</a></li>");
+    }
 </script>
 
 <!--Script that keeps track of how many hits the site gets-->

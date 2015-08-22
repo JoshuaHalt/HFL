@@ -29,7 +29,7 @@
                         return;
                     }
 
-                    lastYear = data[0]; //the default year
+                    lastYear = parseInt(data[0]); //the default year
                     lastYearTeams = data[1] //the team count last year, used to guess this year's team count
                 })
             .fail(function (jqXHR, textstatus, errorthrown) {
@@ -46,8 +46,13 @@
         {
             //set up the data to send back to the server to edit the XML file
             var packet = (lastYear + 1).toString() + "|"; //year's XML file to create
-            packet += $("#txtYahooURL").val() + "|"; //Yahoo HFL website URL
-            
+
+            //make sure the yahoo URL has a / at the end
+            if ($('#txtYahooURL').val().slice(-1) == '/')
+                packet += $("#txtYahooURL").val() + "|";
+            else
+                packet += $("#txtYahooURL").val() + "/|";
+
             //add in each owner's name, team name, and yahoo ID like "|Joshua^The Walking Meds^4|
             for (i = 0; i < $('#txtTeamCount').val() ; i++) {
                 packet += $('#txtOwner' + i).val() + '^';
