@@ -12,14 +12,18 @@
     <script src="Scripts/HFL.js"></script>
     <script src="Scripts/FlexDropDown.js"></script>
 
-    <!--Default year variable is on line 18-->
-
     <script>
-/*YEAR*/var iDefaultYear = 2014; //Don't set this to a value under 2014!
+        var iDefaultYear = -1;
         var weekToAdd, teamNames = [], weeklyScores = [];
 
         function OnLoad()
         {
+            //get the current year from the xml file (I realize this is not the cleanest way to do this)
+            var request = new XMLHttpRequest();
+            request.open("GET", "xml/Settings.xml", false);
+            request.send();
+            iDefaultYear = parseInt(request.responseXML.getElementsByTagName("year")[0].textContent);
+
             //use JSON to get the current week, the teams, the week data
             loadalldata(processAdd, iDefaultYear)
         }

@@ -6,6 +6,7 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using System.Xml;
 using System.Web.Script.Serialization;
+using System.IO;
 
 namespace HFL
 {
@@ -597,21 +598,49 @@ namespace HFL
 
         private void GetYear()
         {
-            lsYear.Add(currentYear.ToString());
+            //lsYear contains: "Add" or "Edit", the year we're working with, the list of teams, and (if "Edit") the yahoo URL
+            DateTime now = DateTime.Now;
+
+            if (currentYear != now.Year)
+            {
+                lsYear.Add("Add");
+                lsYear.Add((currentYear + 1).ToString());
+                lsYear.Add("");
+            }
+            else if (currentYear == now.Year)
+            {
+                lsYear.Add("Edit");
+                lsYear.Add(currentYear.ToString());
+                lsYear.Add(yahooURL);
+            }
 
             XmlDocument xDoc = new XmlDocument();
             xDoc.Load(Request.PhysicalApplicationPath + "\\xml\\" + currentYear.ToString() + ".xml");
 
             XmlNodeList xmlNL = xDoc.GetElementsByTagName("team");
-            List<string> lsPeopleNames = new List<string>();
+            List<List<string>> lsTeamData = new List<List<string>>();
 
-            //get all of the owner's data from the team nodes in the xml file
-            for (int iTeam = 0; iTeam < xmlNL.Count; iTeam++)
-            {
-                XmlNode docNode = xmlNL[iTeam];
-                lsPeopleNames.Add(docNode.Attributes["owner"].Value);
+            if (lsYear[0] == "Add")
+            { //get just the person's name from the xml file from last year, since team names/yahoo IDs changed
+                for (int iTeam = 0; iTeam < xmlNL.Count; iTeam++)
+                {
+                    List<string> teamData = new List<string>();
+                    teamData.Add(xmlNL[iTeam].Attributes["owner"].Value);
+                    lsTeamData.Add(teamData);
+                }
             }
-            lsYear.Add(lsPeopleNames);
+            else
+            { //get all the owner data from the xml file for the season being edited
+                for (int iTeam = 0; iTeam < xmlNL.Count; iTeam++)
+                {
+                    List<string> teamData = new List<string>();
+                    teamData.Add(xmlNL[iTeam].Attributes["owner"].Value);
+                    teamData.Add(xmlNL[iTeam].Attributes["name"].Value);
+                    teamData.Add(xmlNL[iTeam].Attributes["yahooID"].Value);
+                    lsTeamData.Add(teamData);
+                }
+            }
+            lsYear.Add(lsTeamData);
         }
 
         private void GetVarsFromSettings()
