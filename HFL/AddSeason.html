@@ -43,11 +43,207 @@
             })
         }
 
-        function sendData()
+        function processData()
         {
-            var packet = mode + "|";
+            //new title
+            if (mode == "Add")
+                $('#dTitle').text("Begin the " + year.toString() + " season");
+            else
+                $('#dTitle').text("Edit the " + year.toString() + " season");
+
+            $('#txtYahooURL').val(yahooURL); //yahoo URL, could be this year's or blank if we're adding
+
+            $('#txtTeamCount').val(teams.length.toString()); //default team count
+
+            //generate the header
+            sLine = "<div id=\"dAddHeader\" style=\"line-height: 1.7; color: #0013E0\">" +
+                "<span style=\"width: 54px; display: inline-block;\">Owner</span>" +
+                "<span style=\"width: 5px; display: inline-block;\"></span>" +
+                "<span style=\"width: 173px; display: inline-block;\">Team Name</span>" +
+                "<span style=\"width: 5px; display: inline-block;\"></span>" +
+                "<span class=\"width: 54px; display: inline-block;\">Yahoo ID</span></div>";
+            $("#textBoxGroup").append(sLine);
+            
+            if (mode == "Add") {
+                //make last year's team count number of text boxes, prefill them with last year's people names
+                for (i = 0; i < teams.length; i++) {
+                    sLine = "<div id=\"dPlayer" + i.toString() + "\" style=\"line-height: 1.8\">" +
+                        "<input type=\"text\" class=\"addOwnerYahoo\" style=\"font-weight: bold;\" id=\"txtOwner" + i.toString() + "\" value=\"" + teams[i] + "\" />" +
+                        "<span style=\"width: 5px; display: inline-block;\"></span>" +
+                        "<input type=\"text\" style=\"width: 170px;\" id=\"txtTeam" + i.toString() + "\" />" +
+                        "<span style=\"width: 5px; display: inline-block;\"></span>" +
+                        "<input type=\"text\" class=\"addOwnerYahoo\" id=\"txtYahoo" + i.toString() + "\" />" +
+                        "<span style=\"width: 5px; display: inline-block;\"></span>" +
+                        "<div id=\"dvError" + i.toString() + "\" class=\"smallError\"></div></div>";
+                    $("#textBoxGroup").append(sLine);
+                }
+            }
+            else {
+                //make the current year's number of teams rows of text boxes, prefill them with people names, team names, and yahoo IDs
+                for (i = 0; i < teams.length; i++) {
+                    sLine = "<div id=\"dPlayer" + i.toString() + "\" style=\"line-height: 1.8\">";
+                    sLine += "<input type=\"text\" class=\"addOwnerYahoo\" style=\"font-weight: bold;\" id=\"txtOwner" + i.toString() + "\" value=\"" + teams[i][0] + "\" />" +
+                    "<span style=\"width: 5px; display: inline-block;\"></span>" +
+                    "<input type=\"text\" style=\"width: 170px;\" id=\"txtTeam" + i.toString() + "\" value=\"" + teams[i][1] + "\" />" +
+                    "<span style=\"width: 5px; display: inline-block;\"></span>" +
+                    "<input type=\"text\" class=\"addOwnerYahoo\" id=\"txtYahoo" + i.toString() + "\" value=\"" + teams[i][2] + "\" />" +
+                    "<span style=\"width: 5px; display: inline-block;\"></span>" +
+                    "<div id=\"dvError" + i.toString() + "\" class=\"smallError\"></div></div>";
+                    $("#textBoxGroup").append(sLine);
+                }
+            }
+        }
+    
+        function txtTeamCount_type() {
+            $('#dCountError').text(""); //reset error div to empty
+            $('#txtTeamCount').css("background-color", "White"); //reset background of textbox to white
+
+            //if text field is empty, reset error status and don't rebuild textboxes
+            if ($('#txtTeamCount').val() == "" || $('#txtTeamCount').val() == " ") {
+                $('#txtTeamCount').css("background-color", "White");
+                return;
+            }
+
+            if ($('#txtTeamCount').val() % 1 != 0) {
+                $('#txtTeamCount').css("background-color", "#FFA3A3");
+                return;
+            }
+
+            //now data is valid (probably), so create the entered number of rows of textboxes
+            numOfRows = parseInt($('#txtTeamCount').val());
+            $('#textBoxGroup').empty();
+
+            //remake header
+            sLine = "<div id=\"dAddHeader\" style=\"line-height: 1.7; color: #0013E0\">" +
+                "<span style=\"width: 54px; display: inline-block;\">Owner</span>" +
+                "<span style=\"width: 5px; display: inline-block;\"></span>" +
+                "<span style=\"width: 173px; display: inline-block;\">Team Name</span>" +
+                "<span style=\"width: 5px; display: inline-block;\"></span>" +
+                "<span style=\"width: 80px; display: inline-block;\">Yahoo ID</span></div>";
+            $("#textBoxGroup").append(sLine);
+
+            //future: make a "makeRow" function
+
+            //if there's a new player (or the same amount), create that many new
+            if (numOfRows >= teams.length) {
+                //make last year's team count number of text boxes, prefill them with last year's names
+                for (i = 0; i < teams.length; i++) {
+                    sLine = "<div id=\"dPlayer" + i.toString() + "\" style=\"line-height: 1.8\">" +
+                        "<input type=\"text\" class=\"addOwnerYahoo\" style=\"font-weight: bold;\" id=\"txtOwner" + i.toString() + "\" value=\"";
+
+                    mode == "Add" ? sLine += teams[i] : sLine += teams[i][0];
+
+                    sLine += "\" /><span style=\"width: 5px; display: inline-block;\"></span>" +
+                        "<input type=\"text\" style=\"width: 170px;\" id=\"txtTeam" + i.toString() + "\" value=\""
+
+                    mode == "Add" ? sLine += teams[i] : sLine += teams[i][1];
+
+                    sLine += "\" /><span style=\"width: 5px; display: inline-block;\"></span>" +
+                        "<input type=\"text\" class=\"addOwnerYahoo\" id=\"txtYahoo" + i.toString() + "\" value=\"";
+
+                    mode == "Add" ? sLine += teams[i] : sLine += teams[i][2];
+
+                    sLine += "\" /><span style=\"width: 5px; display: inline-block;\"></span>" +
+                        "<div id=\"dvError" + i.toString() + "\" class=\"smallError\"></div></div>";
+                    $("#textBoxGroup").append(sLine);
+                }
+
+                //then, make empty text boxes for new players
+                rowsLeft = numOfRows - teams.length;
+                for (i = teams.length; i < teams.length + rowsLeft; i++) {
+                    sLine = "<div id=\"dPlayer" + i.toString() + "\" style=\"line-height: 1.8\">" +
+                        "<input type=\"text\" class=\"addOwnerYahoo\" style=\"font-weight: bold;\" id=\"txtOwner" +
+                            i.toString() + "\" value=\"\" />" +
+                        "<span style=\"width: 5px; display: inline-block;\"></span>" +
+                        "<input type=\"text\" style=\"width: 170px;\" id=\"txtTeam" + i.toString() + "\" />" +
+                        "<span style=\"width: 5px; display: inline-block;\"></span>" +
+                        "<input type=\"text\" class=\"addOwnerYahoo\" id=\"txtYahoo" + i.toString() + "\" />" +
+                        "<span style=\"width: 5px; display: inline-block;\"></span>" +
+                        "<div id=\"dvError" + i.toString() + "\" class=\"smallError\"></div></div>";
+                    $("#textBoxGroup").append(sLine);
+                }
+            }
+
+            //if there's less than last year's team count, just make however many they wanted from last year's values
+            else {
+                for (i = 0; i < numOfRows; i++) {
+                    sLine = "<div id=\"dPlayer" + i.toString() + "\" style=\"line-height: 1.8\">" +
+                        "<input type=\"text\" class=\"addOwnerYahoo\" style=\"font-weight: bold;\" id=\"txtOwner" + i.toString() + "\" value=\"";
+
+                    mode == "Add" ? sLine += teams[i] : sLine += teams[i][0];
+
+                    sLine += "\" /><span style=\"width: 5px; display: inline-block;\"></span>" +
+                        "<input type=\"text\" style=\"width: 170px;\" id=\"txtTeam" + i.toString() + "\" value=\""
+
+                    mode == "Add" ? sLine += teams[i] : sLine += teams[i][1];
+
+                    sLine += "\" /><span style=\"width: 5px; display: inline-block;\"></span>" +
+                        "<input type=\"text\" class=\"addOwnerYahoo\" id=\"txtYahoo" + i.toString() + "\" value=\"";
+
+                    mode == "Add" ? sLine += teams[i] : sLine += teams[i][2];
+
+                    sLine += "\" /><span style=\"width: 5px; display: inline-block;\"></span>" +
+                        "<div id=\"dvError" + i.toString() + "\" class=\"smallError\"></div></div>";
+                    $("#textBoxGroup").append(sLine);
+                }
+            }
+        }
+
+        function btnSubmit_click() {
+            errorFlag = false;
+
+            //reset Yahoo URL error message to empty
+            $('#dYahooURLError').text("");
+
+            //if the Yahoo URL text box has less than 20 characters, it's probably too short
+            if ($('#txtYahooURL').val().length < 20) {
+                $('#dYahooURLError').text("Error: The Yahoo URL you provided is probably too short to be correct. Please enter the correct one.");
+                errorFlag = true;
+            }
+
+            //if the Yahoo URL text box is empty, give an error and return
+            if ($('#txtYahooURL').val() == "" || $('#txtYahooURL').val() == " ") {
+                $('#dYahooURLError').text("Error: Please provide the Yahoo fantasy site URL.");
+                errorFlag = true;
+            }
+
+            //check each row of textboxes
+            for (i = 0; i < $('#txtTeamCount').val() ; i++) {
+                $('#dvError' + i).text(""); //reset the row's error div to empty
+
+                //empty textboxes or space in textboxes, no idea how that would happen but checking anyway
+                if ($('#txtOwner' + i).val() == "" || $('#txtOwner' + i).val() == " ") {
+                    $('#dvError' + i).text("Error: Owner textbox in this row is empty. Please enter an HFL player's name.");
+                    errorFlag = true;
+                }
+                if ($('#txtTeam' + i).val() == "" || $('#txtTeam' + i).val() == " ") {
+                    $('#dvError' + i).text("Error: Team Name textbox in this row is empty. Please enter a team name.");
+                    errorFlag = true;
+                }
+                if ($('#txtYahoo' + i).val() == "" || $('#txtYahoo' + i).val() == " ") {
+                    $('#dvError' + i).text("Error: Yahoo ID textbox in this row is empty. Please enter a number.");
+                    errorFlag = true;
+                }
+
+                //yahoo ID textbox with a non-number in it
+                if ($('#txtYahoo' + i).val() % 1 != 0) {
+                    $('#dvError' + i).text("Error: Yahoo ID in this row isn't a number.");
+                    errorFlag = true;
+                }
+            }
+
+            //if the flag is true, there was at least one error, so return
+            if (errorFlag)
+                return;
+
+            //if you get here, data is probably good, so send it to edit the XML file
+            sendData();
+        }
+
+        function sendData() {
             //set up the data to send back to the server to edit the XML file
-            packet += year.toString() + "|"; //year's XML file to create
+            var packet = mode + "|";
+            packet += year.toString() + "|"; //year's XML file to create/edit
 
             //make sure the yahoo URL has a / at the end
             if ($('#txtYahooURL').val().slice(-1) == '/')
@@ -90,202 +286,6 @@
                 }
             });
         }
-
-        function processData()
-        {
-            //new title
-            if (mode == "Add")
-                $('#dTitle').text("Begin the " + year.toString() + " season");
-            else
-                $('#dTitle').text("Edit the " + year.toString() + " season");
-
-            $('#txtYahooURL').val(yahooURL); //yahoo URL, could be this year's or blank if we're adding
-
-            $('#txtTeamCount').val(teams.length.toString()); //default team count
-
-            //generate the header
-            sLine = "<div id=\"dAddHeader\" style=\"line-height: 1.7; color: #0013E0\">" +
-                "<span style=\"width: 54px; display: inline-block;\">Owner</span>" +
-                "<span style=\"width: 5px; display: inline-block;\"></span>" +
-                "<span style=\"width: 173px; display: inline-block;\">Team Name</span>" +
-                "<span style=\"width: 5px; display: inline-block;\"></span>" +
-                "<span class=\"width: 54px; display: inline-block;\">Yahoo ID</span></div>";
-            $("#textBoxGroup").append(sLine);
-            
-            if (mode == "Add") {
-                //make last year's team count number of text boxes, prefill them with last year's people names
-                for (i = 0; i < teams.length; i++) {
-                    sLine = "<div id=\"dPlayer" + i.toString() + "\" style=\"line-height: 1.8\">" +
-                        "<input type=\"text\" class=\"addOwnerYahoo\" style=\"font-weight: bold;\" id=\"txtOwner" + i.toString() + "\" value=\"" + teams[i] + "\" />" +
-                        "<span style=\"width: 5px; display: inline-block;\"></span>" +
-                        "<input type=\"text\" id=\"txtTeam" + i.toString() + "\"/>" +
-                        "<span style=\"width: 5px; display: inline-block;\"></span>" +
-                        "<input type=\"text\" class=\"addOwnerYahoo\" id=\"txtYahoo" + i.toString() + "\"/>" +
-                        "<span style=\"width: 5px; display: inline-block;\"></span>" +
-                        "<div id=\"dvError" + i.toString() + "\" class=\"smallError\"></div></div>";
-                    $("#textBoxGroup").append(sLine);
-                }
-            }
-            else {
-                //make the current year's number of teams rows of text boxes, prefill them with people names, team names, and yahoo IDs
-                for (i = 0; i < teams.length; i++) {
-                    sLine = "<div id=\"dPlayer" + i.toString() + "\" style=\"line-height: 1.8\">";
-                    sLine += "<input type=\"text\" class=\"addOwnerYahoo\" style=\"font-weight: bold;\" id=\"txtOwner" + i.toString() + "\" value=\"" + teams[i][0] + "\" />" +
-                    "<span style=\"width: 5px; display: inline-block;\"></span>" +
-                    "<input type=\"text\" id=\"txtTeam" + i.toString() + "\" value=\"" + teams[i][1] + "\" />" +
-                    "<span style=\"width: 5px; display: inline-block;\"></span>" +
-                    "<input type=\"text\" class=\"addOwnerYahoo\" id=\"txtYahoo" + i.toString() + "\" value=\"" + teams[i][2] + "\" />" +
-                    "<span style=\"width: 5px; display: inline-block;\"></span>" +
-                    "<div id=\"dvError" + i.toString() + "\" class=\"smallError\"></div></div>";
-                    $("#textBoxGroup").append(sLine);
-                }
-            }
-        }
-
-        function btnSubmit_click()
-        {
-            errorFlag = false;
-
-            //reset Yahoo URL error message to empty
-            $('#dYahooURLError').text("");
-
-            //if the Yahoo URL text box has less than 25 characters, it's probably too short
-            if ($('#txtYahooURL').val().length < 25) {
-                $('#dYahooURLError').text("Error: The Yahoo URL you provided probably too short to be correct. Please enter the correct one.");
-                errorFlag = true;
-            }
-
-            //if the Yahoo URL text box is empty, give an error and return
-            if ($('#txtYahooURL').val() == "" || $('#txtYahooURL').val() == " ") {
-                $('#dYahooURLError').text("Error: Please provide the Yahoo fantasy site URL.");
-                errorFlag = true;
-            }
-
-            IDs = [];
-
-            //check each row of textboxes
-            for (i = 0; i < $('#txtTeamCount').val() ; i++) {
-                $('#dvError' + i).text(""); //reset the row's error div to empty
-
-                //empty textboxes or space in textboxes, no idea how that would happen but checking anyway
-                if ($('#txtOwner' + i).val() == "" || $('#txtOwner' + i).val() == " ") {
-                    $('#dvError' + i).text("Error: Owner textbox in this row is empty. Please enter an HFL player's name.");
-                    errorFlag = true;
-                }
-                if ($('#txtTeam' + i).val() == "" || $('#txtTeam' + i).val() == " ") {
-                    $('#dvError' + i).text("Error: Team Name textbox in this row is empty. Please enter a team name.");
-                    errorFlag = true;
-                }
-                if ($('#txtYahoo' + i).val() == "" || $('#txtYahoo' + i).val() == " ") {
-                    $('#dvError' + i).text("Error: Yahoo ID textbox in this row is empty. Please enter a number.");
-                    errorFlag = true;
-                }
-
-                //yahoo ID textbox with a non-number in it
-                if ($('#txtYahoo' + i).val() % 1 != 0) {
-                    $('#dvError' + i).text("Error: Yahoo ID textbox in this row doesn't contain a number.");
-                    errorFlag = true;
-                }
-            }
-
-            //if the flag is true, there was at least one error, so return
-            if (errorFlag)
-                return;
-
-            //if you get here, data is probably good, so send it to edit the XML file
-            sendData();
-        }
-    
-        function txtTeamCount_type() {
-            $('#dCountError').text(""); //reset error div to empty
-            $('#txtTeamCount').css("background-color", "White"); //reset background of textbox to white
-
-            //if text field is empty, reset error status and don't rebuild textboxes
-            if ($('#txtTeamCount').val() == "" || $('#txtTeamCount').val() == " ") {
-                $('#txtTeamCount').css("background-color", "White");
-                return;
-            }
-
-            if ($('#txtTeamCount').val() % 1 != 0) {
-                $('#txtTeamCount').css("background-color", "#FFA3A3");
-                return;
-            }
-
-            //now data is valid (probably), so create the entered number of rows of textboxes
-            numOfRows = parseInt($('#txtTeamCount').val());
-            $('#textBoxGroup').empty();
-
-            //remake header
-            sLine = "<div id=\"dAddHeader\" style=\"line-height: 1.7; color: #0013E0\">" +
-                "<span style=\"width: 54px; display: inline-block;\">Owner</span>" +
-                "<span style=\"width: 5px; display: inline-block;\"></span>" +
-                "<span style=\"width: 173px; display: inline-block;\">Team Name</span>" +
-                "<span style=\"width: 5px; display: inline-block;\"></span>" +
-                "<span style=\"width: 80px; display: inline-block;\">Yahoo ID</span></div>";
-            $("#textBoxGroup").append(sLine);
-
-            //if there's a new player (or the same amount), create that many new
-            if (numOfRows >= teams.length) {
-                //make last year's team count number of text boxes, prefill them with last year's names
-                for (i = 0; i < teams.length; i++) {
-                    sLine = "<div id=\"dPlayer" + i.toString() + "\" style=\"line-height: 1.8\">" +
-                        "<input type=\"text\" class=\"addOwnerYahoo\" style=\"font-weight: bold;\" id=\"txtOwner" + i.toString() + "\" value=\"";
-
-                    mode == "Add" ? sLine += teams[i] : sLine += teams[i][0];
-
-                    sLine += "\" /><span style=\"width: 5px; display: inline-block;\"></span>" +
-                        "<input type=\"text\" id=\"txtTeam" + i.toString() + "\" value=\""
-
-                    mode == "Add" ? sLine += teams[i] : sLine += teams[i][1];
-
-                    sLine += "\" /><span style=\"width: 5px; display: inline-block;\"></span>" +
-                        "<input type=\"text\" class=\"addOwnerYahoo\" id=\"txtYahoo" + i.toString() + "\" value=\"";
-
-                    mode == "Add" ? sLine += teams[i] : sLine += teams[i][2];
-
-                    sLine += "\" /><span style=\"width: 5px; display: inline-block;\"></span>" +
-                        "<div id=\"dvError" + i.toString() + "\" class=\"smallError\"></div></div>";
-                    $("#textBoxGroup").append(sLine);
-                }
-                rowsLeft = numOfRows - teams.length;
-                for (i = teams.length; i < teams.length + rowsLeft; i++) {
-                    sLine = "<div id=\"dPlayer" + i.toString() + "\" style=\"line-height: 1.8\">" +
-                        "<input type=\"text\" class=\"addOwnerYahoo\" style=\"font-weight: bold;\" id=\"txtOwner" +
-                            i.toString() + "\" value=\"\" />" +
-                        "<span style=\"width: 5px; display: inline-block;\"></span>" +
-                        "<input type=\"text\" id=\"txtTeam" + i.toString() + "\"/>" +
-                        "<span style=\"width: 5px; display: inline-block;\"></span>" +
-                        "<input type=\"text\" class=\"addOwnerYahoo\" id=\"txtYahoo" + i.toString() + "\"/>" +
-                        "<span style=\"width: 5px; display: inline-block;\"></span>" +
-                        "<div id=\"dvError" + i.toString() + "\" class=\"smallError\"></div></div>";
-                    $("#textBoxGroup").append(sLine);
-                }
-            }
-
-            //if there's less than last year's team count, just make however many they wanted
-            else {
-                for (i = 0; i < numOfRows; i++) {
-                    sLine = "<div id=\"dPlayer" + i.toString() + "\" style=\"line-height: 1.8\">" +
-                        "<input type=\"text\" class=\"addOwnerYahoo\" style=\"font-weight: bold;\" id=\"txtOwner" + i.toString() + "\" value=\"";
-
-                    mode == "Add" ? sLine += teams[i] : sLine += teams[i][0];
-
-                    sLine += "\" /><span style=\"width: 5px; display: inline-block;\"></span>" +
-                        "<input type=\"text\" id=\"txtTeam" + i.toString() + "\" value=\""
-
-                    mode == "Add" ? sLine += teams[i] : sLine += teams[i][1];
-
-                    sLine += "\" /><span style=\"width: 5px; display: inline-block;\"></span>" +
-                        "<input type=\"text\" class=\"addOwnerYahoo\" id=\"txtYahoo" + i.toString() + "\" value=\"";
-
-                    mode == "Add" ? sLine += teams[i] : sLine += teams[i][2];
-
-                    sLine += "\" /><span style=\"width: 5px; display: inline-block;\"></span>" +
-                        "<div id=\"dvError" + i.toString() + "\" class=\"smallError\"></div></div>";
-                    $("#textBoxGroup").append(sLine);
-                }
-            }
-        }
     </script>
 </head>
 
@@ -303,7 +303,7 @@
 
     <br />
 
-    <!--Will be dynamically loaded with 3 textboxes and a div (in case of error)-->
+    <!--Dynamically loaded with 3 textboxes and a div (in case of error)-->
     <div id="textBoxGroup"></div>
 
     <br /> <br />

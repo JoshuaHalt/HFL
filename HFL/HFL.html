@@ -31,7 +31,7 @@
 
         function OnLoad()
         {
-            //make a call to the server to get <year> from the xml file
+            //make a call to the server to get <year> from Settings.xml
             GetCurrentYear();
 
             //if there isn't a year passed in by QueryString, use the current year
@@ -121,23 +121,29 @@
 
 
             //data
-            personTotals = [], personAvgs = [], rows = [], grandTotal = 0, grandAvg = 0;
+            personTotals = [], formattedPersonTotals = [], personAvgs = [], formattedPersonAvgs = [], rows = [], grandTotal = 0, grandAvg = 0;
 
             //calculate each person's total
             for (i = 0; i < points.length; i++) {
                 personTotals[i] = 0;
                 for (j = iStartWeek - 1; j <= iEndWeek - 1; j++)
                     personTotals[i] += points[i].weeklyScores[j];
+                personTotals[i] = parseFloat(personTotals[i].toFixed(1));
             }
 
             //calculate each person's average and the grand total
             for (i = 0; i < personTotals.length; i++) {
-                personAvgs[i] = Math.round(personTotals[i] / (iEndWeek - iStartWeek + 1));
-                grandTotal += personTotals[i];
+                personAvgs[i] = parseFloat((personTotals[i] / (iEndWeek - iStartWeek + 1)).toFixed(1));
+                grandTotal += parseFloat(personTotals[i].toFixed(1))
+
+                formattedPersonTotals[i] = personTotals[i].toFixed(1);
+                formattedPersonAvgs[i] = personAvgs[i].toFixed(1);
             }
 
+            formattedGrandTotal = grandTotal.toFixed(1);
+
             //average of everyone
-            grandAvg = Math.round(grandTotal / (iEndWeek - iStartWeek + 1));
+            grandAvg = (grandTotal / (iEndWeek - iStartWeek + 1)).toFixed(1);
 
             //for each person
             for (i = 0; i < points.length; i++) {
@@ -145,8 +151,8 @@
 
                 sLine = "<div><span class=\"colOwnerName\">" + currentTeam.sOwner + "</span>";
                 sLine += "<span class=\"colTeamName\">" + currentTeam.sTeamName + "</span>";
-                sLine += "<span class=\"colTotAvg\">" + personTotals[i] + "</span>";
-                sLine += "<span class=\"colTotAvg\">" + personAvgs[i] + "</span>";
+                sLine += "<span class=\"colTotAvg\">" + formattedPersonTotals[i] + "</span>";
+                sLine += "<span class=\"colTotAvg\">" + formattedPersonAvgs[i] + "</span>";
 
                 for (j = 0; j < iStartWeek - 1; j++) //1 to the starting week, leave blank
                     sLine += "<span class=\"stdColumn\">&nbsp;</span>";
@@ -176,7 +182,7 @@
 
             //total line
             sLine = "<div class=\"totalLine\"><span class=\"colOwnerName\" style=\"font-weight: bold;\">TOTAL</span><span class=\"colTeamName\">&nbsp;</span>" +
-                    "<span class=\"colTotAvg\">" + grandTotal + "</span><span class=\"colTotAvg\">" + grandAvg + "</span>";
+                    "<span class=\"colTotAvg\">" + formattedGrandTotal + "</span><span class=\"colTotAvg\">" + grandAvg + "</span>";
 
             for (j = 0; j < iStartWeek - 1; j++) //1 to the starting week, leave blank
                 sLine += "<span class=\"stdColumn\">&nbsp;</span>";
@@ -461,9 +467,9 @@
         <li><a id="selA0" onclick="selYear_SelectedIndexChanged($('#selA0').text())">Current Year</a></li>
     </ul>
     
-    <div id="dScores" class="tableTitle" style="padding: 0px 0px 3px 0px; width: 1100px; display: inline-block;">Overall Points
-        <span style="font-size: 18px; display: inline-block;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Show scores between weeks&nbsp;</span>&nbsp;&nbsp;
-        <span id="slider-range" style="width: 550px; display: inline-block;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+    <div id="dScores" class="tableTitle" style="padding: 0px 0px 3px 0px; width: 1140px; display: inline-block;">Overall Points
+        <span style="font-size: 18px; display: inline-block; text-align: right; width: 313px;">Show scores between weeks&nbsp;&nbsp;&nbsp;</span>
+        <span id="slider-range" style="width: 612px; display: inline-block;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
     </div>
     
     <div class="outerTable">

@@ -20,14 +20,14 @@ namespace HFL
         {
             public string sTeamName;
             public string sOwner;
-            public List<int> weeklyScores;
+            public List<double> weeklyScores;
             public List<double> weeklyStandings;
-            public int i15Points;
-            public int i16Points;
-            public int iTotalPoints;
+            public double i15Points;
+            public double i16Points;
+            public double iTotalPoints;
             public double dTotalStandings;
             public double dPointsBack;
-            public int iAveragePoints;
+            public double iAveragePoints;
             public int yahooID;
 
             public Team()
@@ -40,7 +40,7 @@ namespace HFL
                 dPointsBack = 0;
                 i15Points = 0;
                 i16Points = 0;
-                weeklyScores = new List<int>();
+                weeklyScores = new List<double>();
                 weeklyStandings = new List<double>();
                 yahooID = 0;
             }
@@ -129,7 +129,8 @@ namespace HFL
 
         private void LoadData(int iStartWeek, int iEndWeek)
         {
-            int iWeek, iWeekTotal, iTeamCount, iTeam;
+            int iWeek, iTeamCount, iTeam;
+            double iWeekTotal;
             XmlDocument xDoc = new XmlDocument();
             XmlNodeList xmlNL;
             XmlAttribute attrib;
@@ -179,19 +180,22 @@ namespace HFL
             for (iWeek = iStartWeek; iWeek <= iEndWeek; iWeek++)
             {
                 iWeekTotal = 0;
+
+                //find the week based on id
                 for (int i = 0; i < xmlNL.Count; i++) //xmlNL.Count could be a problem
                     if (xmlNL[i].Attributes["id"].Value == iWeek.ToString())
                     {
                         docNode = xmlNL[i];
                         break;
                     }
+                //get the score for that week
                 for (iTeam = 1; iTeam <= iTeamCount; iTeam++)
                 {
                     attrib = docNode.Attributes[HFLTeams[iTeam].sOwner];
-                    HFLTeams[iTeam].weeklyScores.Add(Convert.ToInt32(attrib.Value));
-                    iWeekTotal += Convert.ToInt32(attrib.Value);
+                    HFLTeams[iTeam].weeklyScores.Add(Math.Round(Convert.ToDouble(attrib.Value), 1));
+                    iWeekTotal += Math.Round(Convert.ToDouble(attrib.Value), 1);
                 }
-                HFLTeams[0].weeklyScores.Add(iWeekTotal);
+                HFLTeams[0].weeklyScores.Add(Math.Round(iWeekTotal, 1));
             }
 
             //get the total and average for each team
@@ -236,7 +240,7 @@ namespace HFL
         //Stores the total and average in the Team class's data members
         private void SumTeam(Team myTeam)
         {
-            int x = 0;
+            double x = 0;
             if (myTeam.weeklyScores.Count > 14)
                 for (int i = 0; i < 14; i++)
                     x += myTeam.weeklyScores[i];
@@ -244,13 +248,14 @@ namespace HFL
                 for (int i = 0; i < myTeam.weeklyScores.Count; i++)
                     x += myTeam.weeklyScores[i];
 
-            myTeam.iTotalPoints = x;
-            myTeam.iAveragePoints = (int)Math.Round((double)x / myTeam.weeklyScores.Count);
+            myTeam.iTotalPoints = Math.Round(x, 1);
+            myTeam.iAveragePoints = Math.Round(x / myTeam.weeklyScores.Count, 1);
         }
 
         private void RenderPoints(int iStartWeek, int iEndWeek, List<Team> HFLTeams, bool bShowSup)
         {
-            int i, j, iTeamCount, iHi, iHiCell, iVal;
+            int i, j, iTeamCount, iHiCell, iVal;
+            double iHi;
             double dSum, dHi;
 
             Team currentTeam = new Team(), highestTeam = new Team();
@@ -556,7 +561,7 @@ namespace HFL
             XmlNodeList xmlNL = xDoc.GetElementsByTagName("week"), xmlNLTeams = xDoc.GetElementsByTagName("team");
 
             //if a week 1 score is 0, it's week 1;  assumes nobody scored a 0 in week 1!
-            if (xmlNL.Count == 1 && Convert.ToInt32(xmlNL[0].Attributes[xmlNLTeams[0].Attributes["owner"].Value].Value) == 0)
+            if (xmlNL.Count == 1 && Convert.ToDouble(xmlNL[0].Attributes[xmlNLTeams[0].Attributes["owner"].Value].Value) == 0)
                 iWeekToGet = 1;
 
             //if a week 1 score isn't 0, it's week 2
@@ -577,11 +582,11 @@ namespace HFL
                     if (xmlNL[j].Attributes["id"].Value == (i + 1).ToString())
                     {
                         List<string> tempOwners = new List<string>();
-                        List<int> tempScores = new List<int>();
+                        List<double> tempScores = new List<double>();
                         for (int k = 0; k < lsOwnerNames.Count; k++)
                         {
                             tempOwners.Add(lsOwnerNames[k]);
-                            tempScores.Add(Convert.ToInt16(xmlNL[i].Attributes[lsOwnerNames[k]].Value));
+                            tempScores.Add(Convert.ToDouble(xmlNL[i].Attributes[lsOwnerNames[k]].Value));
                         }
                         List<object> tempBoth = new List<object>();
                         tempBoth.Add(tempOwners);
@@ -599,14 +604,19 @@ namespace HFL
         private void GetYear()
         {
             //lsYear contains: "Add" or "Edit", the year we're working with, the list of teams, and (if "Edit") the yahoo URL
+
+            //we're getting the data here to check if we're adding or editing
+            //Add vs. Edit changes on New Year's Day
             DateTime now = DateTime.Now;
 
+            //if the year in Settings.xml is not Now.Year (likely Now.Year - 1), we're adding
             if (currentYear != now.Year)
             {
                 lsYear.Add("Add");
                 lsYear.Add((currentYear + 1).ToString());
                 lsYear.Add("");
             }
+            //else if the year in Settings.xml is Now.Year, we're editing
             else if (currentYear == now.Year)
             {
                 lsYear.Add("Edit");
@@ -621,7 +631,8 @@ namespace HFL
             List<List<string>> lsTeamData = new List<List<string>>();
 
             if (lsYear[0] == "Add")
-            { //get just the person's name from the xml file from last year, since team names/yahoo IDs changed
+            {
+                //get just the person's name from the xml file from last year, since team names/yahoo IDs changed
                 for (int iTeam = 0; iTeam < xmlNL.Count; iTeam++)
                 {
                     List<string> teamData = new List<string>();
@@ -630,7 +641,8 @@ namespace HFL
                 }
             }
             else
-            { //get all the owner data from the xml file for the season being edited
+            {
+                //get all the owner data from the xml file for the season being edited
                 for (int iTeam = 0; iTeam < xmlNL.Count; iTeam++)
                 {
                     List<string> teamData = new List<string>();
@@ -643,6 +655,8 @@ namespace HFL
             lsYear.Add(lsTeamData);
         }
 
+        //this function gets the year, old site location, and yahoo URL
+        //from Settings.xml and stores them in global variables
         private void GetVarsFromSettings()
         {
             XmlDocument settingsDoc = new XmlDocument();

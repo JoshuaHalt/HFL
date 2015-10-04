@@ -128,7 +128,7 @@
                 }
 
                 //textbox with a non-number in it
-                if ($('#tb' + teamNames[i]).val() % 1 != 0) {
+                if (!$('#tb' + teamNames[i]).val().match(/^(\d*)\.?(\d+)$/)) {
                     $('#dv' + teamNames[i]).text("Error: this textbox does not contain a number.");
                     return;
                 }
@@ -162,7 +162,8 @@
                 $('#textBoxGroup').empty();
                 for (i = 0; i < teamNames.length; i++) {
                     sLine = "<div id=\"dPlayer" + teamNames[i] + "\" style=\"line-height: 1.5\"><label class=\"nameLabel\" id=\"lb" + teamNames[i] + "\">" +
-                        teamNames[i] + ":&nbsp;</label>" + "<input type=\"text\" class=\"smallerText\" id=\"tb" + teamNames[i] + "\" value=\"\" ></div>";
+                        teamNames[i] + ":&nbsp;</label>" + "<input type=\"text\" class=\"smallerText\" id=\"tb" + teamNames[i] + "\" value=\"\" >" +
+                         "<div id=\"dv" + teamNames[i] + "\" class=\"error\"></div></div>";
                     $("#textBoxGroup").append(sLine);
                 }
             }

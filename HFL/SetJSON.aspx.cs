@@ -93,6 +93,7 @@ namespace HFL
                 int iYear = Convert.ToInt16(newSeasonData[1]);
                 newSeasonData.RemoveRange(0, 3);
 
+                //open the settings document, set the year and yahoo URL
                 XmlDocument xDoc = new XmlDocument(), settingsDoc = new XmlDocument();
                 settingsDoc.Load(HttpContext.Current.Request.PhysicalApplicationPath + "\\xml\\Settings.xml");
                 settingsDoc.SelectSingleNode("settings/year").InnerText = iYear.ToString();
@@ -101,6 +102,7 @@ namespace HFL
 
                 if (mode == "Add")
                 {
+                    //copy the file and open it
                     System.IO.File.Copy(HttpContext.Current.Request.PhysicalApplicationPath + "\\xml\\" + (iYear - 1) + ".xml", HttpContext.Current.Request.PhysicalApplicationPath + "\\xml\\" + iYear + ".xml");
                     xDoc.Load(HttpContext.Current.Request.PhysicalApplicationPath + "\\xml\\" + iYear + ".xml");
 
@@ -112,6 +114,7 @@ namespace HFL
                     parentTeamNode.RemoveAll();
                     parentWeekNode.RemoveAll();
 
+                    //there needs to be a week one, with all 0s for scores
                     XmlAttribute weekID = xDoc.CreateAttribute("id");
                     weekID.Value = "1";
                     childWeekNode.Attributes.Append(weekID);
@@ -119,18 +122,21 @@ namespace HFL
                     //for each team this season
                     for (int i = 0; i < newSeasonData.Count; i++)
                     {
+                        //get the attributes from xDoc
                         List<string> team = newSeasonData[i].Split('^').ToList<string>();
                         XmlNode tempTeamNode = childTeamNode.Clone();
                         XmlAttribute id = xDoc.CreateAttribute("id"), name = xDoc.CreateAttribute("name"),
                             owner = xDoc.CreateAttribute("owner"), yahooID = xDoc.CreateAttribute("yahooID"),
                             weekScore = xDoc.CreateAttribute(team[0]);
 
+                        //set the attributes from JSON
                         id.Value = (i + 1).ToString();
                         name.Value = team[1];
                         owner.Value = team[0];
                         yahooID.Value = team[2];
                         weekScore.Value = "0";
 
+                        //add the new attributes to the node
                         tempTeamNode.Attributes.Append(id);
                         tempTeamNode.Attributes.Append(name);
                         tempTeamNode.Attributes.Append(owner);
@@ -138,7 +144,6 @@ namespace HFL
                         childWeekNode.Attributes.Append(weekScore);
 
                         parentTeamNode.AppendChild(tempTeamNode);
-
 
                         parentWeekNode.AppendChild(childWeekNode);
                     }
@@ -155,16 +160,19 @@ namespace HFL
                     //for each team this season
                     for (int i = 0; i < newSeasonData.Count; i++)
                     {
+                        //get the attributes from xDoc
                         List<string> team = newSeasonData[i].Split('^').ToList<string>();
                         XmlNode tempTeamNode = childTeamNode.Clone();
                         XmlAttribute id = xDoc.CreateAttribute("id"), name = xDoc.CreateAttribute("name"),
                             owner = xDoc.CreateAttribute("owner"), yahooID = xDoc.CreateAttribute("yahooID");
 
+                        //set the attributes from JSON
                         id.Value = (i + 1).ToString();
                         name.Value = team[1];
                         owner.Value = team[0];
                         yahooID.Value = team[2];
 
+                        //add the new attributes to the node
                         tempTeamNode.Attributes.Append(id);
                         tempTeamNode.Attributes.Append(name);
                         tempTeamNode.Attributes.Append(owner);
@@ -173,6 +181,8 @@ namespace HFL
                         parentTeamNode.AppendChild(tempTeamNode);
                     }
                 }
+
+                //save the XML document
                 xDoc.Save(HttpContext.Current.Request.PhysicalApplicationPath + "\\xml\\" + iYear + ".xml");
 
                 return "Success";
