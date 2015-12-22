@@ -158,7 +158,7 @@
                     sLine += "<span class=\"stdColumn\">&nbsp;</span>";
 
                 for (j = iStartWeek; j <= iEndWeek; j++) //starting week to ending week, insert the data
-                    sLine += "<span class=\"stdColumn\">" + currentTeam.weeklyScores[j - 1] + "</span>";
+                    sLine += "<span class=\"stdColumn\">" + currentTeam.weeklyScores[j - 1].toFixed(1) + "</span>";
 
                 for (j = iEndWeek; j < 14; j++) //ending week to week 14, leave blank
                     sLine += "<span class=\"stdColumn\">&nbsp;</span>";
@@ -188,7 +188,7 @@
                 sLine += "<span class=\"stdColumn\">&nbsp;</span>";
 
             for (j = iStartWeek; j <= iEndWeek; j++) //starting week to ending week, insert the data
-                sLine += "<span class=\"stdColumn\">" + totalLine.weeklyScores[j - 1] + "</span>";
+                sLine += "<span class=\"stdColumn\">" + totalLine.weeklyScores[j - 1].toFixed(1) + "</span>";
 
             for (j = iEndWeek; j < 14; j++) //ending week to week 14, leave blank
                 sLine += "<span class=\"stdColumn\">&nbsp;</span>";
@@ -309,12 +309,12 @@
                     sLine = "<div><span class=\"colOwnerName\">" + points[i].sOwner + "</span>";
                     sLine += "<span class=\"colTeamName\">" + points[i].sTeamName + "</span>";
 
-                    sLine += "<span class=\"scoreSuperbowlCol\">" + points[i].i15Points + "</span>";
+                    sLine += "<span class=\"scoreSuperbowlCol\">" + points[i].i15Points.toFixed(1) + "</span>";
                     sLine += "<span class=\"scoreSuperbowlCol\">" + personSDBack[i] + "</span>";
-                    sLine += "<span class=\"scoreSuperbowlCol\">" + points[i].i16Points + "</span>";
+                    sLine += "<span class=\"scoreSuperbowlCol\">" + points[i].i16Points.toFixed(1) + "</span>";
                     sLine += "<span class=\"scoreSuperbowlCol\">" + personSDBack[i] + "</span>";
 
-                    sLine += "<span class=\"scoreSuperbowlCol\" style=\"width: 205px; font-weight: bold;\">" + personSupScore[i] + "</span>";
+                    sLine += "<span class=\"scoreSuperbowlCol\" style=\"width: 205px; font-weight: bold;\">" + personSupScore[i].toFixed(1) + "</span>";
 
                     sLine += "</div>";
                     rows.push(sLine);
@@ -339,6 +339,10 @@
 
                     $('#dDraftOrder').empty(); //empty the draft order
                     $('#dDraftOrder').append(draftOrder); //display the draft order (note: this does not change dynamically, since it could cause misinformation)
+                }
+                else {
+                    $('#dWinner').hide();
+                    $('#dDraftOrder').hide();
                 }
             }
 

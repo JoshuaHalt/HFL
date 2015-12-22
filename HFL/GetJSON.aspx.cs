@@ -214,7 +214,7 @@ namespace HFL
                             break;
                         }
                     attrib = docNode.Attributes[HFLTeams[iTeam].sOwner];
-                    HFLTeams[iTeam].i15Points = Convert.ToInt32(attrib.Value);
+                    HFLTeams[iTeam].i15Points = Convert.ToDouble(attrib.Value);
                 }
             }
             if (xmlNL.Count == 16)
@@ -228,7 +228,7 @@ namespace HFL
                             break;
                         }
                     attrib = docNode.Attributes[HFLTeams[iTeam].sOwner];
-                    HFLTeams[iTeam].i16Points = Convert.ToInt32(attrib.Value);
+                    HFLTeams[iTeam].i16Points = Convert.ToDouble(attrib.Value);
                 }
             }
 
